@@ -6,11 +6,28 @@ document.addEventListener("DOMContentLoaded", () => {
     function createSquares() {
         for (let x = 0; x < 16; x ++) {
             let gameSquare = document.createElement('div');
+            gameSquare.innerHTML = '0';
             gameGrid.appendChild(gameSquare);
             squaresArray.push(gameSquare);
         }
+        generateRandomTwice();
     }
     createSquares();
+
+    function generateRandomTwice() {
+        for (let x = 0; x < 2; x++) {
+            let randomIndex = Math.floor(Math.random() * 16);
+            if (squaresArray[randomIndex].innerHTML === '0') {
+                squaresArray[randomIndex].innerHTML = 2;
+            }
+            else if (squaresArray[randomIndex].innerHTML !== '0') {
+                x--;
+            }
+        }
+
+
+        // if (squaresArray[randomIndex].innerHTML === )
+    }
 });
 
 // document.addEventListener("DOMContentLoaded", arrowKeyCapture);
