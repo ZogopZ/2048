@@ -1,15 +1,19 @@
 .game-grid {
-    background-color: slategrey;
+    width: 480px;
+    height: 480px;
     display: flex;
     flex-wrap: wrap;
-    height: 360px;
-    width: 359px;
+    align-items: center;
+    justify-content: space-around;
+    background-color: slategrey;
 }
+
 .game-grid div {
+    width: 100px;
+    height: 100px;
+    border-style: solid;
+    border-width: 10px;
     background-color: skyblue;
-    border-style: inset;
-    border-width: thick;
-    font-size: 20px;
-    height: 22.4%;
-    width: 22.4%;
+    font-size: 60px;
+    text-align: center;
 }
