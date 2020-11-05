@@ -1,7 +1,7 @@
 'use strict';
 document.addEventListener("DOMContentLoaded", () => {
     const gameGrid = document.querySelector('.game-grid');
-    console.log(gameGrid);
+    const arrowArray = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
     let squaresArray = [];
 
     function createSquares() {
@@ -31,20 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function generateNoRandom() {
         squaresArray[0].innerHTML = 2;
         squaresArray[1].innerHTML = 2;
-        // squaresArray[2].innerHTML = 2;
-        // squaresArray[3].innerHTML = 2;
-        // squaresArray[4].innerHTML = 4;
-        // squaresArray[5].innerHTML = 4;
-        // squaresArray[6].innerHTML = 4;
-        // squaresArray[7].innerHTML = 4;
-        // squaresArray[8].innerHTML = 2;
-        // squaresArray[9].innerHTML = 2;
-        // squaresArray[10].innerHTML = 2;
-        // squaresArray[11].innerHTML = 2;
-        // squaresArray[12].innerHTML = 4;
-        // squaresArray[13].innerHTML = 4;
-        // squaresArray[14].innerHTML = 4;
-        // squaresArray[15].innerHTML = 4;
+        squaresArray[2].innerHTML = 4;
+        squaresArray[3].innerHTML = 2;
     }
 
     function arrowKeyCapture() {
@@ -55,31 +43,43 @@ document.addEventListener("DOMContentLoaded", () => {
         document.onkeydown = checkKey;
         function checkKey(e) {
             e = e || window.Event;
-            let masterArray = []  // todo: rename this to something like masterMap.
-            let mapOne = [];
-            let mapTwo = [];
-            let mapThree = [];
-            let mapFour = [];
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                for (let i = 0; i < 16; i += 4) {
-                    if (squaresArray[i].innerHTML !== '')  // Remove zeros. todo: more on this.
-                        mapOne.push(+squaresArray[i].innerHTML);
-                    if (squaresArray[i + 1].innerHTML !== '')
-                        mapTwo.push(+squaresArray[i + 1].innerHTML);
-                    if (squaresArray[i + 2].innerHTML !== '')
-                        mapThree.push(+squaresArray[i + 2].innerHTML);
-                    if (squaresArray[i + 3].innerHTML !== '')
-                        mapFour.push(+squaresArray[i + 3].innerHTML);
+            let masterArray = [];  // todo: rename this to something like masterMap.
+            if (arrowArray.includes(e.key)) {
+                let mapOne = [];
+                let mapTwo = [];
+                let mapThree = [];
+                let mapFour = [];
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    for (let i = 0; i < 16; i += 4) {
+                        if (squaresArray[i].innerHTML !== '')  // Remove zeros. todo: more on this.
+                            mapOne.push(+squaresArray[i].innerHTML);
+                        if (squaresArray[i + 1].innerHTML !== '')
+                            mapTwo.push(+squaresArray[i + 1].innerHTML);
+                        if (squaresArray[i + 2].innerHTML !== '')
+                            mapThree.push(+squaresArray[i + 2].innerHTML);
+                        if (squaresArray[i + 3].innerHTML !== '')
+                            mapFour.push(+squaresArray[i + 3].innerHTML);
+                    }
+                    if (e.key === 'ArrowUp')
+                        masterArray.push(mapOne, mapTwo, mapThree, mapFour);
+                    else if (e.key === 'ArrowDown')
+                        masterArray.push(mapOne.reverse(), mapTwo.reverse(), mapThree.reverse(), mapFour.reverse());
                 }
-                if (e.key === 'ArrowUp')
+                else if (e.key === 'ArrowLeft') {
+                    for (let i = 0; i < 4; i++) {
+                        if (squaresArray[i].innerHTML !== '')  // Remove zeros. todo: more on this.
+                            mapOne.push(+squaresArray[i].innerHTML);
+                        if (squaresArray[i + 4].innerHTML !== '')
+                            mapTwo.push(+squaresArray[i + 4].innerHTML);
+                        if (squaresArray[i + 2 * 4].innerHTML !== '')
+                            mapThree.push(+squaresArray[i + 2 * 4].innerHTML);
+                        if (squaresArray[i + 3 * 4].innerHTML !== '')
+                            mapFour.push(+squaresArray[i + 3 * 4].innerHTML);
+                    }
                     masterArray.push(mapOne, mapTwo, mapThree, mapFour);
-                else if (e.key === 'ArrowDown')
-                    masterArray.push(mapOne.reverse(), mapTwo.reverse(), mapThree.reverse(), mapFour.reverse());
+                }
                 rearrangeMaster();
                 reMap();
-            }
-            else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                alert('right or left was pressed');
             }
             else
                 return;
@@ -93,9 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 generateRandom();
                 updateColors();
             }
-            
 
-            function rearrangeMaster() {
+
+            function rearrangeMaster() {  // todo: rework names.
                 masterArray.forEach(function(column) {
                     if (column.length === 2) {
                         if (column[0] === column[1]) {
@@ -125,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             column[0] <<= 1;
                             column[1] = column[2];
                             column[2] = column[3];
+                            column[3] = '';
                         }
                         else if (column[1] === column[2]) {
                             column[1] <<= 1;
@@ -144,20 +145,31 @@ document.addEventListener("DOMContentLoaded", () => {
             function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
                 masterArray.forEach(function(map, index) {
                     for (let i = 0; i < 4; i++) {
-                        if (e.key === 'ArrowUp') {
+                        if (e.key === arrowArray[0]) {
                             for (let i = 0; i < 4; i++) {
                                 squaresArray[4 * i + index].innerHTML = map[i];
                             }
                         }
-                        else if (e.key === 'ArrowDown') {
+                        else if (e.key === arrowArray[1]) {
                             for (let i = 0; i < 4; i++) {
                                 squaresArray[4 * (3 - i) + index].innerHTML = map[i]
+                            }
+                        }
+                        else if (e.key === arrowArray[2]) {
+                            for (let i = 0; i < 4; i++) {
+                                squaresArray[4 * (3 - i) + index].innerHTML = map[i]
+                            }
+                        }
+                        else if (e.key === arrowArray[3]) {
+                            for (let i = 0; i < 4; i++) {
+                                squaresArray[i + 4 * index].innerHTML = map[i]
                             }
                         }
                     }
                 });
             }
         }
+
         function updateColors() {  // todo: probably make this somehow faster?
             squaresArray.forEach(function(divTile) {
                 let tileColor = '';
@@ -184,7 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 else if (divTile.innerHTML === '2048')
                     tileColor = '#ffff00';
                 divTile.style.backgroundColor = tileColor;
-
             });
         }
     }
