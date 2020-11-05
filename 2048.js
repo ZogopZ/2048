@@ -30,12 +30,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
     function generateNoRandom() {
-        // squaresArray[0].innerHTML = 0;
         squaresArray[0].innerHTML = 2;
+        squaresArray[1].innerHTML = 2;
+        // squaresArray[2].innerHTML = 2;
+        // squaresArray[3].innerHTML = 2;
         // squaresArray[4].innerHTML = 4;
-        squaresArray[8].innerHTML = 2;
-        // squaresArray[12].innerHTML = 2;
+        // squaresArray[5].innerHTML = 4;
+        // squaresArray[6].innerHTML = 4;
+        // squaresArray[7].innerHTML = 4;
         // squaresArray[8].innerHTML = 2;
+        // squaresArray[9].innerHTML = 2;
+        // squaresArray[10].innerHTML = 2;
+        // squaresArray[11].innerHTML = 2;
+        // squaresArray[12].innerHTML = 4;
+        // squaresArray[13].innerHTML = 4;
+        // squaresArray[14].innerHTML = 4;
+        // squaresArray[15].innerHTML = 4;
     }
 
     function updateColors()  // todo: probably make this somehow faster?
@@ -70,6 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function arrowKeyCapture() {
+        let stateStart = [];
+        for (let i = 0; i < 16; i++)
+            stateStart.push(squaresArray[i].innerHTML);
         document.onkeydown = checkKey;
         function checkKey(e) {
             e = e || window.Event;
@@ -117,8 +130,18 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (e.key === 'ArrowRight') {
                 alert('right was pressed');
             }
-            generateRandom();
+            else
+                return;
             updateColors();
+            let stateEnd = [];
+            for (let i = 0; i < 16; i++)
+                stateEnd.push(squaresArray[i].innerHTML);
+            console.log(stateStart);
+            console.log(stateEnd);
+            if (JSON.stringify(stateStart) !== JSON.stringify(stateEnd)) {
+                generateRandom();
+                updateColors();
+            }
             function rearrangeMaster() {
                 masterArray.forEach(function(column) {
                     if (column.length === 2) {
