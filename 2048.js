@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function createSquares() {
         for (let x = 0; x < 16; x ++) {
             let gameSquare = document.createElement('div');
-            gameSquare.innerHTML = '0';
+            gameSquare.innerHTML = '' ;
             gameGrid.appendChild(gameSquare);
             squaresArray.push(gameSquare);
         }
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function generateRandom() {
             let randomIndex = Math.floor(Math.random() * 16);
-            if (squaresArray[randomIndex].innerHTML === '0') {
+            if (squaresArray[randomIndex].innerHTML === '') {
                 squaresArray[randomIndex].innerHTML = 2;
             }
             else if (squaresArray[randomIndex].innerHTML !== '0') {
@@ -31,7 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function generateNoRandom() {
         // squaresArray[0].innerHTML = 0;
-        squaresArray[4].innerHTML = 2;
+        squaresArray[0].innerHTML = 2;
+        // squaresArray[4].innerHTML = 4;
+        squaresArray[8].innerHTML = 2;
+        // squaresArray[12].innerHTML = 2;
         // squaresArray[8].innerHTML = 2;
     }
 
@@ -39,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {
         squaresArray.forEach(function(divTile) {
             let tileColor = '';
-            if (divTile.innerHTML === '0')
+            if (divTile.innerHTML === '')
                 tileColor = '#ccccff';
             else if (divTile.innerHTML === '2')
                 tileColor = '#b3b3ff';
@@ -70,71 +73,43 @@ document.addEventListener("DOMContentLoaded", () => {
         document.onkeydown = checkKey;
         function checkKey(e) {
             e = e || window.Event;
-            if (e.key === 'ArrowUp') {
-                let firstCol = [];
-                let secondCol = [];
-                let thirdCol = [];
-                let fourthCol = [];
-                let masterArray = [];
+            let masterArray = []  // todo: rename this to something like masterMap.
+            let mapOne = [];
+            let mapTwo = [];
+            let mapThree = [];
+            let mapFour = [];
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 for (let i = 0; i < 16; i += 4) {
-                    if (squaresArray[i].innerHTML !== '0')  // Remove zeroes. todo: more on this.
-                        firstCol.push(+squaresArray[i].innerHTML);
-                    if (squaresArray[i + 1].innerHTML !== '0')
-                        secondCol.push(+squaresArray[i + 1].innerHTML);
-                    if (squaresArray[i + 2].innerHTML !== '0')
-                        thirdCol.push(+squaresArray[i + 2].innerHTML);
-                    if (squaresArray[i + 3].innerHTML !== '0')
-                        fourthCol.push(+squaresArray[i + 3].innerHTML);
+                    if (squaresArray[i].innerHTML !== '')  // Remove zeros. todo: more on this.
+                        mapOne.push(+squaresArray[i].innerHTML);
+                    if (squaresArray[i + 1].innerHTML !== '')
+                        mapTwo.push(+squaresArray[i + 1].innerHTML);
+                    if (squaresArray[i + 2].innerHTML !== '')
+                        mapThree.push(+squaresArray[i + 2].innerHTML);
+                    if (squaresArray[i + 3].innerHTML !== '')
+                        mapFour.push(+squaresArray[i + 3].innerHTML);
                 }
-                masterArray.push(firstCol, secondCol, thirdCol, fourthCol);
+                if (e.key === 'ArrowUp')
+                    masterArray.push(mapOne, mapTwo, mapThree, mapFour);
+                else if (e.key === 'ArrowDown')
+                    masterArray.push(mapOne.reverse(), mapTwo.reverse(), mapThree.reverse(), mapFour.reverse());
                 rearrangeMaster();
                 reMap();
 
-                function rearrangeMaster() {
-                    masterArray.forEach(function(column) {
-                        let iterator = 4 - column.length;  // todo: find a solution for this.
-                        if (column.length === 2) {
-                            if (column[0] === column[1]) {
-                                column[0] <<= 1;
-                                column[1] = 0;
-                            }
-                        }
-                        else if (column.length === 3) {
-                            if (column[0] === column[1] === column[2]) {
-                                column[0] <<= 1;
-                                column[2] = 0;
-                            }
-                        }
-                        for (let i = 0; i < iterator; i++)
-                            column.push(0);
-                    });
-                }
-
-                function reMap() {  // todo: this is done in a different way for each direction key pressed.
+                function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
                     masterArray.forEach(function(map, index) {
-                        for (let i = 0; i < 4; i++) {
-                            // console.log(4*i+index);
-                            squaresArray[4 * i + index].innerHTML = map[i];
+                        if (e.key === 'ArrowUp') {
+                            for (let i = 0; i < 4; i++) {
+                                squaresArray[4 * i + index].innerHTML = map[i];
                             }
+                        }
+                        else if (e.key === 'ArrowDown') {
+                            for (let i = 3; i >= 0; i--) {
+                                squaresArray[4 * i + index].innerHTML = map[3 - i];
+                            }
+                        }
                     });
                 }
-            }
-                    // console.log(squaresArray[i].innerHTML);  // todo: delete this.
-                    // if (squaresArray[i].innerHTML === '0' && squaresArray[i+4].innerHTML !== '0') {
-                    //     continue;
-                        // squaresArray[i].innerHTML = squaresArray[i+4].innerHTML;
-                        // squaresArray[i+4].innerHTML = 0;
-                    // }
-                    // else if (squaresArray[i].innerHTML === squaresArray[i+4].innerHTML) {
-                    //     squaresArray[i].innerHTML <<= 1;  // todo: why is this behaving correctly?
-                    //     squaresArray[i+4].innerHTML = 0;
-                    // }
-                //         // squaresArray[i+4].innerHTML = '0';
-                //     }
-                // }
-            // }
-            else if (e.key === 'ArrowDown') {
-                alert('down was pressed');
             }
             else if (e.key === 'ArrowLeft') {
                 alert('left was pressed');
@@ -144,8 +119,52 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             generateRandom();
             updateColors();
+            function rearrangeMaster() {
+                masterArray.forEach(function(column) {
+                    if (column.length === 2) {
+                        if (column[0] === column[1]) {
+                            column[0] <<= 1;
+                            column[1] = '';
+                        }
+                    }
+                    else if (column.length === 3) {
+                        if (column[0] === column[1]) {
+                            column[0] <<= 1;
+                            column[1] = column[2];
+                            column[2] = '';
+                        }
+                        else if (column[1] === column[2]) {
+                            column[1] <<= 1;
+                            column[2] = '';
+                        }
+                    }
+                    else if (column.length === 4) {
+                        if ((column[0] === column[1]) && (column[2] === column[3])) {
+                            column[0] <<= 1;
+                            column[1] <<= 1;
+                            column[2] = '';
+                            column[3] = '';
+                        }
+                        else if ((column[0] === column[1]) && (column[2] !== column[3])) {
+                            column[0] <<= 1;
+                            column[1] = column[2];
+                            column[2] = column[3];
+                        }
+                        else if (column[1] === column[2]) {
+                            column[1] <<= 1;
+                            column[2] = column[3];
+                            column[3] = '';
+                        }
+                        else if (column[2] === column[3]) {
+                            column[2] <<= 1;
+                            column[3] = '';
+                        }
+                    }
+                    let iterator = 4 - column.length;  // todo: find a solution for this.
+                    for (let i = 0; i < iterator; i++)
+                        column.push('');
+                });
+            }
         }
     }
 });
-
-// document.addEventListener("DOMContentLoaded", arrowKeyCapture);
