@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
         generateNoRandom();
         // generateRandom();
         // generateRandom();
-        updateColors();
         arrowKeyCapture();
     }
     createSquares();
@@ -48,38 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // squaresArray[15].innerHTML = 4;
     }
 
-    function updateColors()  // todo: probably make this somehow faster?
-    {
-        squaresArray.forEach(function(divTile) {
-            let tileColor = '';
-            if (divTile.innerHTML === '')
-                tileColor = '#ccccff';
-            else if (divTile.innerHTML === '2')
-                tileColor = '#b3b3ff';
-            else if (divTile.innerHTML === '4')
-                tileColor = '#9999ff';
-            else if (divTile.innerHTML === '8')
-                tileColor = '#8080ff';
-            else if (divTile.innerHTML === '16')
-                tileColor = '#6666ff';
-            else if (divTile.innerHTML === '32')
-                tileColor = '#4d4dff';
-            else if (divTile.innerHTML === '64')
-                tileColor = '#3333ff';
-            else if (divTile.innerHTML === '128')
-                tileColor = '#1a1aff';
-            else if (divTile.innerHTML === '512')
-                tileColor = '#0000ff';
-            else if (divTile.innerHTML === '1024')
-                tileColor = '#0000cc';
-            else if (divTile.innerHTML === '2048')
-                tileColor = '#ffff00';
-            divTile.style.backgroundColor = tileColor;
-
-        });
-    }
-
     function arrowKeyCapture() {
+        updateColors();
         let stateStart = [];
         for (let i = 0; i < 16; i++)
             stateStart.push(squaresArray[i].innerHTML);
@@ -108,27 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     masterArray.push(mapOne.reverse(), mapTwo.reverse(), mapThree.reverse(), mapFour.reverse());
                 rearrangeMaster();
                 reMap();
-
-                function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
-                    masterArray.forEach(function(map, index) {
-                        if (e.key === 'ArrowUp') {
-                            for (let i = 0; i < 4; i++) {
-                                squaresArray[4 * i + index].innerHTML = map[i];
-                            }
-                        }
-                        else if (e.key === 'ArrowDown') {
-                            for (let i = 3; i >= 0; i--) {
-                                squaresArray[4 * i + index].innerHTML = map[3 - i];
-                            }
-                        }
-                    });
-                }
             }
-            else if (e.key === 'ArrowLeft') {
-                alert('left was pressed');
-            }
-            else if (e.key === 'ArrowRight') {
-                alert('right was pressed');
+            else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                alert('right or left was pressed');
             }
             else
                 return;
@@ -136,12 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
             let stateEnd = [];
             for (let i = 0; i < 16; i++)
                 stateEnd.push(squaresArray[i].innerHTML);
-            console.log(stateStart);
-            console.log(stateEnd);
+            // console.log(stateStart);
+            // console.log(stateEnd);
             if (JSON.stringify(stateStart) !== JSON.stringify(stateEnd)) {
                 generateRandom();
                 updateColors();
             }
+            
+
             function rearrangeMaster() {
                 masterArray.forEach(function(column) {
                     if (column.length === 2) {
@@ -188,6 +141,51 @@ document.addEventListener("DOMContentLoaded", () => {
                         column.push('');
                 });
             }
+            function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
+                masterArray.forEach(function(map, index) {
+                    for (let i = 0; i < 4; i++) {
+                        if (e.key === 'ArrowUp') {
+                            for (let i = 0; i < 4; i++) {
+                                squaresArray[4 * i + index].innerHTML = map[i];
+                            }
+                        }
+                        else if (e.key === 'ArrowDown') {
+                            for (let i = 0; i < 4; i++) {
+                                squaresArray[4 * (3 - i) + index].innerHTML = map[i]
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        function updateColors() {  // todo: probably make this somehow faster?
+            squaresArray.forEach(function(divTile) {
+                let tileColor = '';
+                if (divTile.innerHTML === '')
+                    tileColor = '#ccccff';
+                else if (divTile.innerHTML === '2')
+                    tileColor = '#b3b3ff';
+                else if (divTile.innerHTML === '4')
+                    tileColor = '#9999ff';
+                else if (divTile.innerHTML === '8')
+                    tileColor = '#8080ff';
+                else if (divTile.innerHTML === '16')
+                    tileColor = '#6666ff';
+                else if (divTile.innerHTML === '32')
+                    tileColor = '#4d4dff';
+                else if (divTile.innerHTML === '64')
+                    tileColor = '#3333ff';
+                else if (divTile.innerHTML === '128')
+                    tileColor = '#1a1aff';
+                else if (divTile.innerHTML === '512')
+                    tileColor = '#0000ff';
+                else if (divTile.innerHTML === '1024')
+                    tileColor = '#0000cc';
+                else if (divTile.innerHTML === '2048')
+                    tileColor = '#ffff00';
+                divTile.style.backgroundColor = tileColor;
+
+            });
         }
     }
 });
