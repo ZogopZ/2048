@@ -37,11 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function arrowKeyCapture() {
         updateColors();
-        let stateStart = [];
-        for (let i = 0; i < 16; i++)
-            stateStart.push(squaresArray[i].innerHTML);
         document.onkeydown = checkKey;
         function checkKey(e) {
+            let stateStart = [];
+            for (let i = 0; i < 16; i++)
+                stateStart.push(squaresArray[i].innerHTML);
             e = e || window.Event;
             let masterArray = [];  // todo: rename this to something like masterMap.
             if (arrows.includes(e.key)) {
@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 stateEnd.push(squaresArray[i].innerHTML);
             // console.log(stateStart);
             // console.log(stateEnd);
+            console.log(JSON.stringify(stateStart) === JSON.stringify(stateEnd));
             if (JSON.stringify(stateStart) !== JSON.stringify(stateEnd)) {
                 generateRandom();
                 updateColors();
@@ -165,27 +166,29 @@ document.addEventListener("DOMContentLoaded", () => {
             squaresArray.forEach(function(divTile) {
                 let tileColor = '';
                 if (divTile.innerHTML === '')
-                    tileColor = '#ccccff';
+                    tileColor = '#e6f0ff';
                 else if (divTile.innerHTML === '2')
-                    tileColor = '#b3b3ff';
+                    tileColor = '#cce0ff';
                 else if (divTile.innerHTML === '4')
-                    tileColor = '#9999ff';
+                    tileColor = '#b3d1ff';
                 else if (divTile.innerHTML === '8')
-                    tileColor = '#8080ff';
+                    tileColor = '#99c2ff';
                 else if (divTile.innerHTML === '16')
-                    tileColor = '#6666ff';
+                    tileColor = '#80b3ff';
                 else if (divTile.innerHTML === '32')
-                    tileColor = '#4d4dff';
+                    tileColor = '#66a3ff';
                 else if (divTile.innerHTML === '64')
-                    tileColor = '#3333ff';
+                    tileColor = '#4d94ff';
                 else if (divTile.innerHTML === '128')
-                    tileColor = '#1a1aff';
+                    tileColor = '#3385ff';
+                else if (divTile.innerHTML === '256')
+                    tileColor = '#1a75ff';
                 else if (divTile.innerHTML === '512')
-                    tileColor = '#0000ff';
+                    tileColor = '#0066ff';
                 else if (divTile.innerHTML === '1024')
-                    tileColor = '#0000cc';
+                    tileColor = '#005ce6';
                 else if (divTile.innerHTML === '2048')
-                    tileColor = '#ffff00';
+                    tileColor = '#0052cc';
                 divTile.style.backgroundColor = tileColor;
             });
         }
