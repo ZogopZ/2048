@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameGrid = document.querySelector('.game-grid');
     const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
     let squaresArray = [];
+    createSquares();
 
     function createSquares() {
         for (let x = 0; x < 16; x ++) {
@@ -16,8 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // generateRandom();
         arrowKeyCapture();
     }
-    createSquares();
-
     function generateRandom() {
             let randomIndex = Math.floor(Math.random() * 16);
             if (squaresArray[randomIndex].innerHTML === '') {
@@ -27,21 +26,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 generateRandom();
             }
         }
-
     function generateNoRandom() {
         squaresArray[0].innerHTML = 2;
-        squaresArray[1].innerHTML = 2;
-        squaresArray[2].innerHTML = 4;
-        squaresArray[3].innerHTML = 2;
+        squaresArray[1].innerHTML = 4;
+        squaresArray[2].innerHTML = 8;
+        squaresArray[3].innerHTML = 16;
+        squaresArray[4].innerHTML = 32;
+        squaresArray[5].innerHTML = 64;
+        squaresArray[6].innerHTML = 128;
+        squaresArray[7].innerHTML = 256;
+        squaresArray[8].innerHTML = 2;
+        squaresArray[9].innerHTML = 4;
+        squaresArray[10].innerHTML = 8;
+        squaresArray[11].innerHTML = 16;
+        squaresArray[12].innerHTML = 32;
+        squaresArray[13].innerHTML = 64;
+        squaresArray[14].innerHTML = 32;
+        squaresArray[15].innerHTML = 32;
     }
-
     function arrowKeyCapture() {
         updateColors();
         document.onkeydown = checkKey;
         function checkKey(e) {
             let stateStart = [];
+            const winCondition = (element) => element === '2048';
+
             for (let i = 0; i < 16; i++)
                 stateStart.push(squaresArray[i].innerHTML);
+            if (stateStart.some(winCondition))
+                alert('You\'ve won!');  // todo: restart game.
+            if (!canMove())
+                alert('You\'ve lost...');  // todo: restart game.
             e = e || window.Event;
             let masterArray = [];  // todo: rename this to something like masterMap.
             if (arrows.includes(e.key)) {
@@ -90,15 +105,31 @@ document.addEventListener("DOMContentLoaded", () => {
             let stateEnd = [];
             for (let i = 0; i < 16; i++)
                 stateEnd.push(squaresArray[i].innerHTML);
-            // console.log(stateStart);
-            // console.log(stateEnd);
-            console.log(JSON.stringify(stateStart) === JSON.stringify(stateEnd));
             if (JSON.stringify(stateStart) !== JSON.stringify(stateEnd)) {
                 generateRandom();
                 updateColors();
             }
 
-
+            function canMove() {  // todo: this needs a lot of work.
+                let move = false;
+                if (stateStart.includes('') === false) {  // No empty spaces in game board.
+                    for (let i = 0; i < 16; i++) {
+                        if (i === 0 || i === 1 || i === 2 || i === 4 || i === 5 || i === 6 || i === 8 || i === 9 || i === 10) {
+                            if ((stateStart[i] === stateStart[i + 1]) || (stateStart[i] === stateStart[i + 4]))
+                                move = true;
+                        }
+                        else if (i === 3 || i === 7 || i === 11) {
+                            if (stateStart[i] === stateStart[i + 4])
+                                move = true;
+                        }
+                        else if (i === 12 || i === 13 || i === 14) {
+                            if (stateStart[i] === stateStart[i + 1])
+                                move = true;
+                        }
+                    }
+                }
+                return move;
+            }
             function rearrangeMaster() {  // todo: rework names.
                 masterArray.forEach(function(column) {
                     if (column.length === 2) {
@@ -119,7 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                     else if (column.length === 4) {
-                        if ((column[0] === column[1]) && (column[2] === column[3])) {
+                        if ((column[0] === column[1]) && (column[2] === column[3]) && (column[1] !== column[2])) {
+                            column[0] <<= 1;
+                            column[1] = column[2] << 1;
+                            column[2] = ''
+                            column[3] = ''
+                        }
+                        else if ((column[0] === column[1]) && (column[2] === column[3])) {
                             column[0] <<= 1;
                             column[1] <<= 1;
                             column[2] = '';
@@ -141,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             column[3] = '';
                         }
                     }
-                    let iterator = 4 - column.length;  // todo: find a solution for this.
+                    let iterator = 4 - column.length;  // todo: find a solution for this. todo: this might NOT be needed!
                     for (let i = 0; i < iterator; i++)
                         column.push('');
                 });
