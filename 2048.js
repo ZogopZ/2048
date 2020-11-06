@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
             gameGrid.appendChild(gameSquare);
             squaresArray.push(gameSquare);
         }
-        generateNoRandom();
-        // generateRandom();
+        // generateNoRandom();
+        generateRandom();
         // generateRandom();
         arrowKeyCapture();
     }
@@ -22,27 +22,29 @@ document.addEventListener("DOMContentLoaded", () => {
             if (squaresArray[randomIndex].innerHTML === '') {
                 squaresArray[randomIndex].innerHTML = 2;
             }
-            else if (squaresArray[randomIndex].innerHTML !== '0') {
+            else if (squaresArray[randomIndex].innerHTML !== '0')
                 generateRandom();
-            }
         }
     function generateNoRandom() {
-        squaresArray[0].innerHTML = 2;
+        squaresArray[0].innerHTML = '';
         squaresArray[1].innerHTML = 4;
-        squaresArray[2].innerHTML = 8;
+        squaresArray[2].innerHTML = 16;
         squaresArray[3].innerHTML = 16;
+
         squaresArray[4].innerHTML = 32;
         squaresArray[5].innerHTML = 64;
         squaresArray[6].innerHTML = 128;
         squaresArray[7].innerHTML = 256;
-        squaresArray[8].innerHTML = 2;
+
+        squaresArray[8].innerHTML = '';
         squaresArray[9].innerHTML = 4;
-        squaresArray[10].innerHTML = 8;
+        squaresArray[10].innerHTML = 16;
         squaresArray[11].innerHTML = 16;
-        squaresArray[12].innerHTML = 32;
-        squaresArray[13].innerHTML = 64;
+
+        squaresArray[12].innerHTML = 2;
+        squaresArray[13].innerHTML = 2;
         squaresArray[14].innerHTML = 32;
-        squaresArray[15].innerHTML = 32;
+        squaresArray[15].innerHTML = 128;
     }
     function arrowKeyCapture() {
         updateColors();
@@ -50,13 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
         function checkKey(e) {
             let stateStart = [];
             const winCondition = (element) => element === '2048';
-
             for (let i = 0; i < 16; i++)
                 stateStart.push(squaresArray[i].innerHTML);
-            if (stateStart.some(winCondition))
-                alert('You\'ve won!');  // todo: restart game.
-            if (!canMove())
-                alert('You\'ve lost...');  // todo: restart game.
             e = e || window.Event;
             let masterArray = [];  // todo: rename this to something like masterMap.
             if (arrows.includes(e.key)) {
@@ -109,33 +106,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 generateRandom();
                 updateColors();
             }
+            stateEnd = [];  // todo: rework this. It is used to recalibrate stateEnd after random insertion.
+            for (let i = 0; i < 16; i++)  // todo: rework this.
+                stateEnd.push(squaresArray[i].innerHTML);  // todo: rework this.
+            if (stateEnd.some(winCondition) === true)
+                alert('You\'ve won!');  // todo: restart game.
+            if (checkMoves() === false)
+                alert('You\'ve lost...');  // todo: restart game.
 
-            function canMove() {  // todo: this needs a lot of work.
-                let move = false;
-                if (stateStart.includes('') === false) {  // No empty spaces in game board.
+            function checkMoves() {  // todo: this needs a lot of work.
+                let canMove = false;
+                if (stateEnd.includes('') === true)
+                    canMove = true;
+                else if (stateEnd.includes('') === false) {  // No empty spaces in game board.
                     for (let i = 0; i < 16; i++) {
                         if (i === 0 || i === 1 || i === 2 || i === 4 || i === 5 || i === 6 || i === 8 || i === 9 || i === 10) {
-                            if ((stateStart[i] === stateStart[i + 1]) || (stateStart[i] === stateStart[i + 4]))
-                                move = true;
+                            if ((stateEnd[i] === stateEnd[i + 1]) || (stateEnd[i] === stateEnd[i + 4]))
+                                canMove = true;
                         }
                         else if (i === 3 || i === 7 || i === 11) {
-                            if (stateStart[i] === stateStart[i + 4])
-                                move = true;
+                            if (stateEnd[i] === stateEnd[i + 4])
+                                canMove = true;
                         }
                         else if (i === 12 || i === 13 || i === 14) {
-                            if (stateStart[i] === stateStart[i + 1])
-                                move = true;
+                            if (stateEnd[i] === stateEnd[i + 1])
+                                canMove = true;
                         }
+
                     }
                 }
-                return move;
+                return canMove;
             }
-            function rearrangeMaster() {  // todo: rework names.
+            function rearrangeMaster() {  // todo: rework names and zeros.
                 masterArray.forEach(function(column) {
-                    if (column.length === 2) {
+                    if (column.length === 1) {
+                        column[1] = '';
+                        column[2] = '';
+                        column[3] = '';
+                    }
+                    else if (column.length === 2) {
                         if (column[0] === column[1]) {
                             column[0] <<= 1;
                             column[1] = '';
+                            column[2] = '';
+                            column[3] = '';
+                        }
+                        else if (column[0] !== column[1]) {
+                            column[2] = '';
+                            column[3] = '';
                         }
                     }
                     else if (column.length === 3) {
@@ -143,11 +161,15 @@ document.addEventListener("DOMContentLoaded", () => {
                             column[0] <<= 1;
                             column[1] = column[2];
                             column[2] = '';
+                            column[3] = '';
                         }
                         else if (column[1] === column[2]) {
                             column[1] <<= 1;
                             column[2] = '';
+                            column[3] = '';
                         }
+                        else
+                            column[3] = '';
                     }
                     else if (column.length === 4) {
                         if ((column[0] === column[1]) && (column[2] === column[3]) && (column[1] !== column[2])) {
@@ -178,9 +200,12 @@ document.addEventListener("DOMContentLoaded", () => {
                             column[3] = '';
                         }
                     }
-                    let iterator = 4 - column.length;  // todo: find a solution for this. todo: this might NOT be needed!
-                    for (let i = 0; i < iterator; i++)
-                        column.push('');
+                    else if (column.length === 0) {
+                        column[0] = '';
+                        column[1] = '';
+                        column[2] = '';
+                        column[3] = '';
+                    }
                 });
             }
             function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
@@ -189,16 +214,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (e.key === arrows[0])  // Arrow up was pressed.
                                 squaresArray[(4 * i) + index].innerHTML = map[i];
                         else if (e.key === arrows[1])  // Arrow down was pressed.
-                                squaresArray[(4 * (3 - i)) + index].innerHTML = map[i]
+                                squaresArray[(4 * (3 - i)) + index].innerHTML = map[i];
                         else if (e.key === arrows[2])  // Arrow right was pressed.
-                                squaresArray[3 - i + (4 * index)].innerHTML = map[i]
+                                squaresArray[3 - i + (4 * index)].innerHTML = map[i];
                         else if (e.key === arrows[3])  // Arrow left was pressed.
-                                squaresArray[i + (4 * index)].innerHTML = map[i]
+                                squaresArray[i + (4 * index)].innerHTML = map[i];
                     }
                 });
             }
         }
-
         function updateColors() {  // todo: probably make this somehow faster?
             squaresArray.forEach(function(divTile) {
                 let tileColor = '';
