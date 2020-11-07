@@ -2,14 +2,15 @@
 // document.addEventListener("DOMContentLoaded", () => {  // todo: probably need this.
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let grid = [];
+let map;
 
 function setup() {
-    noLoop();
     createCanvas(800, 600);
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     noRandomGen();
     console.table(grid);
     arrowKeyCapture()
+    noLoop();
 }
 
 function draw() {
@@ -19,39 +20,26 @@ function draw() {
 function drawGrid(e) {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-            fill('#ddddbb')
-            strokeWeight(15);
+            // fill('#ddddbb')
+            noFill();
             stroke('#c3c388');
+            strokeWeight(15);
             rect(i * 100 + 150, j * 100 + 150, 100, 100, 10);
             if (grid[i][j] !== 0) {
-                // imageMode(CENTER);
-                // image(image2, i * 100 + 50, j * 100 + 50, 80, 80);
-                fill('white');
+                fill('#FFFFFF');
+                stroke('#000000');
+                strokeWeight(5);
+                textSize(50);
+                textAlign(CENTER, CENTER);
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
         }
     }
 }
-function mapGridHorizontally(e) {
-    let map = [];
-    let gridPart = [];
-    for (let i = 0; i < 4; i++) {
-        gridPart = grid[i];
-        map.push(gridPart.filter(x => x));
-        if (e.key === arrows[2])
-            map[i].reverse();
-        if (map[i].length < 4)
-            map[i] = map[i].concat(new Array(4 - map[i].length).fill(0));
-   }
-    console.table(map);
-    return map;
-}
-function mapGridVertically() {
-
-}
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
     function checkKey(e) {
-        let map = [];
+        map = [];
         e = e || window.Event;
         if (arrows.includes(e.key)) {
             if ((e.key === arrows[2]) || (e.key === arrows[3]))
@@ -67,12 +55,101 @@ function arrowKeyCapture() {
             // loop();
         }
     }
-    // return position;
 }
+function mapGridHorizontally(e) {
+    let gridPart = [];
+    for (let i = 0; i < 4; i++) {
+        gridPart = grid[i];
+        map.push(gridPart.filter(x => x));
+        if (e.key === arrows[2])
+            map[i].reverse();
+        // if (map[i].length < 4)
+        //     map[i] = map[i].concat(new Array(4 - map[i].length).fill(0));
+    }
+    console.table(moveAndMerge());
+}
+function mapGridVertically() {
+
+}
+function moveAndMerge() {
+    map.forEach(function(column) {
+        if (column.length === 1) {
+            column[1] = 0;
+            column[2] = 0;
+            column[3] = 0;
+        }
+        else if (column.length === 2) {
+            if (column[0] === column[1]) {
+                column[0] <<= 1;
+                column[1] = 0;
+                column[2] = 0;
+                column[3] = 0;
+            }
+            else if (column[0] !== column[1]) {
+                column[2] = 0;
+                column[3] = 0;
+            }
+        }
+        else if (column.length === 3) {
+            if (column[0] === column[1]) {
+                column[0] <<= 1;
+                column[1] = column[2];
+                column[2] = 0;
+                column[3] = 0;
+            }
+            else if (column[1] === column[2]) {
+                column[1] <<= 1;
+                column[2] = 0;
+                column[3] = 0;
+            }
+            else
+                column[3] = 0;
+        }
+        else if (column.length === 4) {
+            if ((column[0] === column[1]) && (column[2] === column[3]) && (column[1] !== column[2])) {
+                column[0] <<= 1;
+                column[1] = column[2] << 1;
+                column[2] = 0
+                column[3] = 0
+            }
+            else if ((column[0] === column[1]) && (column[2] === column[3])) {
+                column[0] <<= 1;
+                column[1] <<= 1;
+                column[2] = 0;
+                column[3] = 0;
+            }
+            else if ((column[0] === column[1]) && (column[2] !== column[3])) {
+                column[0] <<= 1;
+                column[1] = column[2];
+                column[2] = column[3];
+                column[3] = 0;
+            }
+            else if (column[1] === column[2]) {
+                column[1] <<= 1;
+                column[2] = column[3];
+                column[3] = 0;
+            }
+            else if (column[2] === column[3]) {
+                column[2] <<= 1;
+                column[3] = 0;
+            }
+        }
+        else if (column.length === 0) {
+            column[0] = 0;
+            column[1] = 0;
+            column[2] = 0;
+            column[3] = 0;
+        }
+    });
+    return map;
+}
+
 function noRandomGen() {
     grid[0][0] = 2;
     grid[0][1] = 2;
-    grid[0][3] = 4;
+    grid[1][0] = 4;
+    grid[1][1] = 16;
+    grid[1][2] = 16;
     grid[3][2] = 4;
     grid[3][3] = 4;
 }
