@@ -7,7 +7,8 @@ let map;
 function setup() {
     createCanvas(800, 600);
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-    noRandomGen();
+    // noRandomGen();
+    randomGen();
     arrowKeyCapture()
     noLoop();
 }
@@ -15,9 +16,8 @@ function setup() {
 function draw() {
     drawGrid();
 }
-
 function drawGrid() {
-    console.table(grid);
+    randomGen();
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
             fill('#ddddbb')
@@ -31,7 +31,7 @@ function drawGrid() {
                 strokeWeight(4);
                 textSize(50);
                 textAlign(CENTER, CENTER);
-                text('0', j * 100 + 400 / 2, i * 100 + 400 / 2);
+                text('', j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
             else if (grid[i][j] !== 0) {
                 fill('#888888');
@@ -44,17 +44,15 @@ function drawGrid() {
         }
     }
 }
+
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
     function checkKey(e) {
         map = [];
         e = e || window.Event;
         if (arrows.includes(e.key)) {
-            if ((e.key === arrows[2]) || (e.key === arrows[3])) {
-                map = mapGridHorizontally(e);
-            }
-            else if ((e.key === arrows[0]) || (e.key === arrows[1]))
-                map = mapGridVertically(e);
+            if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3]))
+                map = mapGrid(e);
             // grid[0][3] = grid[0][0];
             // grid[0][0] = 0;
             // position.start.x = 0;
@@ -63,24 +61,46 @@ function arrowKeyCapture() {
             // position.end.y = 3;
             // loop();
             grid = map;
-             redraw();
+            redraw();
         }
     }
 }
-function mapGridHorizontally(e) {
-    let gridPart = [];
-    for (let i = 0; i < 4; i++) {
-        gridPart = grid[i];
-        map.push(gridPart.filter(x => x));
-        if (e.key === arrows[2])
-            map[i].reverse();
-        // if (map[i].length < 4)
-        //     map[i] = map[i].concat(new Array(4 - map[i].length).fill(0));
-    }
-    return moveAndMerge();
-}
-function mapGridVertically() {
 
+function mapGrid(e) {
+    let gridPart;
+     if (e.key === arrows[0] || e.key === arrows[1]) {
+         for (let i = 0; i < 4; i++) {
+             gridPart = [];
+             for (let j = 0; j < 4; j++) {
+                 gridPart.push(grid[j][i]);
+             }
+             map.push(gridPart.filter(x => x));
+         }
+     }
+    else if (e.key === arrows[2] || e.key === arrows[3]) {
+        for (let i = 0; i < 4; i++) {
+            gridPart = grid[i];
+            map.push(gridPart.filter(x => x));
+            if (e.key === arrows[2])
+                map[i].reverse();
+        }
+    }
+    map = moveAndMerge();
+    console.table(map);
+    let transferMap = [];
+    if (e.key === arrows[0]) {
+        for (let i = 0; i < 4; i++) {
+            gridPart = [];
+            for (let j = 0; j < 4; j++) {
+                gridPart.push(map[j][i]);
+            }
+            transferMap.push(gridPart);
+        }
+        map = transferMap;
+    }
+    if (e.key === arrows[2])
+        map.forEach((line) => line.reverse());
+    return map;
 }
 function moveAndMerge() {
     map.forEach(function(column) {
@@ -174,30 +194,31 @@ function randomGen() {
     }
     if (emptySpots.length > 0) {
         let spot = random(emptySpots);
-        grid[spot.x][spot.y] = random(1) > 0.5 ? 2 : 4;
+        grid[spot.x][spot.y] = random(1) > 0.1 ? 2 : 4;
     }
 }
 
-
-
-
-//     const gameGrid = document.querySelector('.game-grid');
-//
-//     let squaresArray = [];
-//     createSquares();
-//
-//     function createSquares() {
-//         for (let x = 0; x < 16; x ++) {
-//             let gameSquare = document.createElement('div');
-//             gameSquare.innerHTML = '' ;
-//             gameGrid.appendChild(gameSquare);
-//             squaresArray.push(gameSquare);
+// function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
+//     masterArray.forEach(function(map, index) {
+//         for (let i = 0; i < 4; i++) {
+//             if (e.key === arrows[0])  // Arrow up was pressed.
+//                 squaresArray[(4 * i) + index].innerHTML = map[i];
+//             else if (e.key === arrows[1])  // Arrow down was pressed.
+//                 squaresArray[(4 * (3 - i)) + index].innerHTML = map[i];
+//             else if (e.key === arrows[2])  // Arrow right was pressed.
+//                 squaresArray[3 - i + (4 * index)].innerHTML = map[i];
+//             else if (e.key === arrows[3])  // Arrow left was pressed.
+//                 squaresArray[i + (4 * index)].innerHTML = map[i];
 //         }
-//         // generateRandom();
-//         // generateRandom();
-//         generateNoRandom()
-//         arrowKeyCapture();
-//     }
+//     });
+// }
+
+
+
+
+
+
+
 //     function generateRandom() {
 //             let randomIndex = Math.floor(Math.random() * 16);
 //             if (squaresArray[randomIndex].innerHTML === '') {
@@ -388,20 +409,7 @@ function randomGen() {
 //                     }
 //                 });
 //             }
-//             function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
-//                 masterArray.forEach(function(map, index) {
-//                     for (let i = 0; i < 4; i++) {
-//                         if (e.key === arrows[0])  // Arrow up was pressed.
-//                                 squaresArray[(4 * i) + index].innerHTML = map[i];
-//                         else if (e.key === arrows[1])  // Arrow down was pressed.
-//                                 squaresArray[(4 * (3 - i)) + index].innerHTML = map[i];
-//                         else if (e.key === arrows[2])  // Arrow right was pressed.
-//                                 squaresArray[3 - i + (4 * index)].innerHTML = map[i];
-//                         else if (e.key === arrows[3])  // Arrow left was pressed.
-//                                 squaresArray[i + (4 * index)].innerHTML = map[i];
-//                     }
-//                 });
-//             }
+
 //         }
 //         function updateColors() {  // todo: probably make this somehow faster?
 //             squaresArray.forEach(function(divTile) {
