@@ -66,37 +66,45 @@ function arrowKeyCapture() {
     }
 }
 
+/* Maps the numbers of the game grid accordingly by capturing which
+arrow key was pressed.*/
 function mapGrid(e) {
     let gridPart;
-     if (e.key === arrows[0] || e.key === arrows[1]) {
+     if (e.key === arrows[0] || e.key === arrows[1]) {  // Arrow up or arrow down was pressed.
          for (let i = 0; i < 4; i++) {
              gridPart = [];
              for (let j = 0; j < 4; j++) {
-                 gridPart.push(grid[j][i]);
+                 gridPart.push(grid[j][i]);  // Get column slices from the 'grid' array left to right.
              }
-             map.push(gridPart.filter(x => x));
+             map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
+             if (e.key === arrows[1])  // Arrow down case only!
+                 map[i].reverse();  // Need to reverse each row to 'moveAndMerge()' correctly.
          }
      }
-    else if (e.key === arrows[2] || e.key === arrows[3]) {
+    else if (e.key === arrows[2] || e.key === arrows[3]) {  // Arrow right or left down was pressed.
         for (let i = 0; i < 4; i++) {
             gridPart = grid[i];
-            map.push(gridPart.filter(x => x));
-            if (e.key === arrows[2])
+            map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
+            if (e.key === arrows[2])  // Arrow right case only!
                 map[i].reverse();
         }
     }
     map = moveAndMerge();
     console.table(map);
     let transferMap = [];
-    if (e.key === arrows[0]) {
+    if (e.key === arrows[0] || e.key === arrows[1]) {
         for (let i = 0; i < 4; i++) {
             gridPart = [];
             for (let j = 0; j < 4; j++) {
                 gridPart.push(map[j][i]);
             }
-            transferMap.push(gridPart);
+            if (e.key === arrows[1])
+                transferMap.unshift(gridPart);
+            else
+                transferMap.push(gridPart);
         }
         map = transferMap;
+        console.table(map);
     }
     if (e.key === arrows[2])
         map.forEach((line) => line.reverse());
@@ -197,23 +205,6 @@ function randomGen() {
         grid[spot.x][spot.y] = random(1) > 0.1 ? 2 : 4;
     }
 }
-
-// function reMap() {  // todo: this is done in a different way for each direction key pressed. This can probably be shortened more.
-//     masterArray.forEach(function(map, index) {
-//         for (let i = 0; i < 4; i++) {
-//             if (e.key === arrows[0])  // Arrow up was pressed.
-//                 squaresArray[(4 * i) + index].innerHTML = map[i];
-//             else if (e.key === arrows[1])  // Arrow down was pressed.
-//                 squaresArray[(4 * (3 - i)) + index].innerHTML = map[i];
-//             else if (e.key === arrows[2])  // Arrow right was pressed.
-//                 squaresArray[3 - i + (4 * index)].innerHTML = map[i];
-//             else if (e.key === arrows[3])  // Arrow left was pressed.
-//                 squaresArray[i + (4 * index)].innerHTML = map[i];
-//         }
-//     });
-// }
-
-
 
 
 
