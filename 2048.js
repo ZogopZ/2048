@@ -8,7 +8,6 @@ function setup() {
     createCanvas(800, 600);
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     noRandomGen();
-    console.table(grid);
     arrowKeyCapture()
     noLoop();
 }
@@ -17,16 +16,25 @@ function draw() {
     drawGrid();
 }
 
-function drawGrid(e) {
+function drawGrid() {
+    console.table(grid);
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-            // fill('#ddddbb')
-            noFill();
+            fill('#ddddbb')
+            // noFill();
             stroke('#c3c388');
             strokeWeight(15);
-            rect(i * 100 + 150, j * 100 + 150, 100, 100, 10);
-            if (grid[i][j] !== 0) {
+            rect(j * 100 + 150, i * 100 + 150, 100, 100, 10);
+            if (grid[i][j] === 0) {
                 fill('#FFFFFF');
+                stroke('#000000');
+                strokeWeight(4);
+                textSize(50);
+                textAlign(CENTER, CENTER);
+                text('0', j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] !== 0) {
+                fill('#888888');
                 stroke('#000000');
                 strokeWeight(5);
                 textSize(50);
@@ -42,8 +50,9 @@ function arrowKeyCapture() {
         map = [];
         e = e || window.Event;
         if (arrows.includes(e.key)) {
-            if ((e.key === arrows[2]) || (e.key === arrows[3]))
+            if ((e.key === arrows[2]) || (e.key === arrows[3])) {
                 map = mapGridHorizontally(e);
+            }
             else if ((e.key === arrows[0]) || (e.key === arrows[1]))
                 map = mapGridVertically(e);
             // grid[0][3] = grid[0][0];
@@ -53,6 +62,8 @@ function arrowKeyCapture() {
             // position.end.x = 0;
             // position.end.y = 3;
             // loop();
+            grid = map;
+             redraw();
         }
     }
 }
@@ -66,7 +77,7 @@ function mapGridHorizontally(e) {
         // if (map[i].length < 4)
         //     map[i] = map[i].concat(new Array(4 - map[i].length).fill(0));
     }
-    console.table(moveAndMerge());
+    return moveAndMerge();
 }
 function mapGridVertically() {
 
@@ -166,6 +177,10 @@ function randomGen() {
         grid[spot.x][spot.y] = random(1) > 0.5 ? 2 : 4;
     }
 }
+
+
+
+
 //     const gameGrid = document.querySelector('.game-grid');
 //
 //     let squaresArray = [];
