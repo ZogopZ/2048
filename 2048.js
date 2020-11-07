@@ -7,42 +7,10 @@ let map;
 function setup() {
     createCanvas(800, 600);
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-    // noRandomGen();
-    randomGen();
+    noRandomGen();
+    // randomGen();
     arrowKeyCapture()
     noLoop();
-}
-
-function draw() {
-    drawGrid();
-}
-function drawGrid() {
-    randomGen();
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            fill('#ddddbb')
-            // noFill();
-            stroke('#c3c388');
-            strokeWeight(15);
-            rect(j * 100 + 150, i * 100 + 150, 100, 100, 10);
-            if (grid[i][j] === 0) {
-                fill('#FFFFFF');
-                stroke('#000000');
-                strokeWeight(4);
-                textSize(50);
-                textAlign(CENTER, CENTER);
-                text('', j * 100 + 400 / 2, i * 100 + 400 / 2);
-            }
-            else if (grid[i][j] !== 0) {
-                fill('#888888');
-                stroke('#000000');
-                strokeWeight(5);
-                textSize(50);
-                textAlign(CENTER, CENTER);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            }
-        }
-    }
 }
 
 function arrowKeyCapture() {
@@ -184,13 +152,26 @@ function moveAndMerge() {
 }
 
 function noRandomGen() {
-    grid[0][0] = 2;
+    grid[0][0] = 0;
     grid[0][1] = 2;
-    grid[1][0] = 4;
-    grid[1][1] = 16;
-    grid[1][2] = 16;
-    grid[3][2] = 4;
-    grid[3][3] = 4;
+    grid[0][2] = 4;
+    grid[0][3] = 8;
+
+    grid[1][0] = 16;
+    grid[1][1] = 32;
+    grid[1][2] = 64;
+    grid[1][3] = 128;
+
+    grid[2][0] = 256;
+    grid[2][1] = 512;
+    grid[2][2] = 1024;
+    grid[2][3] = 2048;
+
+    grid[3][0] = 0;
+    grid[3][1] = 0;
+    grid[3][2] = 0;
+    grid[3][3] = 0;
+
 }
 function randomGen() {
     let emptySpots = [];
@@ -206,7 +187,146 @@ function randomGen() {
     }
 }
 
-
+function draw() {
+    drawGrid();
+}
+function drawGrid() {
+    // randomGen();
+    textFont('Cambria');
+    textAlign(CENTER, CENTER);
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            if (grid[i][j] === 0) {
+                fill('#cdc1b4');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                text('', j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 2) {
+                fill('#eee4da');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#776e65');
+                noStroke();
+                strokeWeight(5);
+                textSize(45);
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 4) {
+                fill('#eee1c9');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#776e65');
+                noStroke();
+                strokeWeight(5);
+                textSize(45);
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 8) {
+                fill('#f3b27a');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(45);
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 16) {
+                fill('#f69664');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(43);
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 32) {
+                fill('#f77c5f');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(43)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 64) {
+                fill('#f75f3b');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);;
+                textSize(43)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 128) {
+                fill('#edd073');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(40)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 256) {
+                fill('#edcc62');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(40)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 512) {
+                fill('#edc950');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(40)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 1024) {
+                fill('#edc53f');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#f9f6f2');
+                noStroke();
+                strokeWeight(5);
+                textSize(35)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+            else if (grid[i][j] === 2048) {
+                fill(' #ffff00');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#b8b894');
+                noStroke();
+                strokeWeight(5);
+                textSize(35)
+                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
+            }
+        }
+    }
+}
 
 
 
