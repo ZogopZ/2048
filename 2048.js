@@ -16,7 +16,7 @@ function draw() {
     drawGrid();
 }
 
-function drawGrid() {
+function drawGrid(e) {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
             fill('#ddddbb')
@@ -31,24 +31,33 @@ function drawGrid() {
         }
     }
 }
-function mapGrid() {
+function mapGridHorizontally(e) {
     let map = [];
     let gridPart = [];
     for (let i = 0; i < 4; i++) {
         gridPart = grid[i];
         map.push(gridPart.filter(x => x));
+        if (e.key === arrows[2])
+            map[i].reverse();
         if (map[i].length < 4)
-            map[i].push(new Array(4 - map[i].length).fill(0));
-    }
-    console.log(map);
+            map[i] = map[i].concat(new Array(4 - map[i].length).fill(0));
+   }
+    console.table(map);
+    return map;
+}
+function mapGridVertically() {
+
 }
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
     function checkKey(e) {
+        let map = [];
         e = e || window.Event;
         if (arrows.includes(e.key)) {
-            if (e.key === arrows[3])
-                mapGrid();
+            if ((e.key === arrows[2]) || (e.key === arrows[3]))
+                map = mapGridHorizontally(e);
+            else if ((e.key === arrows[0]) || (e.key === arrows[1]))
+                map = mapGridVertically(e);
             // grid[0][3] = grid[0][0];
             // grid[0][0] = 0;
             // position.start.x = 0;
