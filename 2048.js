@@ -2,20 +2,43 @@
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let grid = [];
 let map = [];
+let gameOver = false;
 let winner = false;
+let button;
 
 function setup() {
     createCanvas(800, 650);
+    createNewGameButton();
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     noRandomGen();
     // randomGen();
     arrowKeyCapture()
     noLoop();
 }
-
+function createNewGameButton() {
+    button = createButton('New Game');
+    button.position(250, 400);
+    button.style('background-color', '#a3c2c2');
+    button.style('border', 'none');
+    button.style('font-size', '30px');
+    button.style('font-family', 'forte');
+    button.style('border-radius', '12px');
+    button.mousePressed(function () {
+        button.hide();
+        winner = false;
+        gameOver = false;
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++)
+                grid[i][j] = 0;
+        }
+        randomGen();
+        arrowKeyCapture();
+        redraw();
+    });
+    button.hide();
+}
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
-
     function checkKey(e) {
         let checker = grid;
         map = [];
@@ -24,16 +47,10 @@ function arrowKeyCapture() {
             if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3]))
                 map = mapGrid(e);
             grid = map;
-            if (JSON.stringify(checker) !== JSON.stringify(grid))
+            if (JSON.stringify(checker) !== JSON.stringify(grid)) {
                 redraw();
-            if(playerCanMove() === false)
-                alert('LOSER!');
-            if(playerWin()) {
-                document.onkeydown = null;
-                // redraw();
-                loop();
-                alert('WINNER!!!');
             }
+            checkGameOver();
         }
     }
 }
@@ -79,7 +96,6 @@ function mapGrid(e) {
         map.forEach((line) => line.reverse());
     return map;
 }
-
 function moveAndMerge() {
     map.forEach(function (column) {
         if (column.length === 1) {
@@ -143,25 +159,25 @@ function moveAndMerge() {
 }
 
 function noRandomGen() {
-    grid[0][0] = 2048;
-    grid[0][1] = 1024;
-    grid[0][2] = 8;
+    grid[0][0] = 2;
+    grid[0][1] = 4;
+    grid[0][2] = 256;
     grid[0][3] = 16;
     //
     grid[1][0] = 32;
-    grid[1][1] = 64;
-    grid[1][2] = 128;
+    grid[1][1] = 512;
+    grid[1][2] = 512;
     grid[1][3] = 256;
     // //
-    grid[2][0] = 512;
-    grid[2][1] = 1024;
-    // grid[2][2] = 2048;
+    grid[2][0] = 2;
+    grid[2][1] = 4;
+    grid[2][2] = 8;
     grid[2][3] = 16;
 
-    // grid[3][0] = 32;
-    // grid[3][1] = 64;
-    // grid[3][2] = 2;
-    // grid[3][3] = 256;
+    grid[3][0] = 32;
+    grid[3][1] = 64;
+    grid[3][2] = 128;
+    grid[3][3] = 1024;
 
 }
 function randomGen() {
@@ -183,7 +199,8 @@ function draw() {
 }
 function drawGrid() {
     randomGen();
-    textFont('Gill Sans');
+    // textFont('Gill Sans');
+    textFont('comic sans');
     textAlign(CENTER, CENTER);
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
@@ -236,86 +253,85 @@ function drawGrid() {
                 fill('#cc0099');
                 stroke('#cc0099');
                 strokeWeight(3);
-                textSize(43);								// megethos tou arithmou.
+                textSize(43);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
-            else if (grid[i][j] === 32) {						// 32
-                fill('#ffff00');							// xroma tetragonou.
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#993399');							// xroma arithmou.
-                stroke('#993333');							// xroma perigrammatos arithmou.
+            else if (grid[i][j] === 32) {
+                fill('#ffff00');
+                stroke('#bbada0');
+                strokeWeight(15)
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#993399');
+                stroke('#993333');
                 strokeWeight(3);
-                textSize(43);								// megethos tou arithmou.
+                textSize(43);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
-            else if (grid[i][j] === 64) {						// 64
-                fill('#ffcc00');							// xroma tetragonou.
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#993333');							// xroma arithmou.
-                stroke('#993333');							// xroma perigrammatos arithmou.
+            else if (grid[i][j] === 64) {
+                fill('#ffcc00');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#993333');
+                stroke('#993333');
                 strokeWeight(3);
                 textSize(43)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-
             }
-            else if (grid[i][j] === 128) {						// 128
-                fill('#ff9900');							// xroma tetragonou.
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#990033');							// xroma arithmou.
-                stroke('#990033');							// xroma perigrammatos arithmou.
+            else if (grid[i][j] === 128) {
+                fill('#ff9900');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#990033');
+                stroke('#990033');
                 strokeWeight(3);
-                textSize(41);								// megethos tou arithmou.
+                textSize(41);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
 
             }
-            else if (grid[i][j] === 256) {						// 256
-                fill('#cc9900');							// xroma tetragonou.
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#660033');							// xroma arithmou.
-                stroke('#660033');							// xroma perigrammatos arithmou.
+            else if (grid[i][j] === 256) {
+                fill('#cc9900');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#660033');
+                stroke('#660033');
                 strokeWeight(3);
-                textSize(41);								// megethos tou arithmou.
+                textSize(41);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
-            else if (grid[i][j] === 512) {						// 512
-                fill('#009900');							// xroma tetragonou.
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#66001a');							// xroma arithmou.							// xroma arithmou.
-                stroke('#66001a');							// xroma perigrammatos arithmou.
+            else if (grid[i][j] === 512) {
+                fill('#009900');
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#66001a');
+                stroke('#66001a');
                 strokeWeight(3);
-                textSize(41);								// megethos tou arithmou.
+                textSize(41);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
             else if (grid[i][j] === 1024) {
                 fill('#008000');
-                stroke('#bbada0');							// xroma perigrammatos tetragonou.
-                strokeWeight(15);							// megethos perigrammatos tou tetragonou.
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#660000');							// xroma arithmou.
-                stroke('#660000');							// xroma perigrammatos arithmou.
-                strokeWeight(3);
-                textSize(36);								// megethos tou arithmou.
+                stroke('#bbada0');
+                strokeWeight(15);
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#660000');
+                stroke('#660000');
+                strokeWeight(2);
+                textSize(37);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
             else if (grid[i][j] === 2048) {
                 fill('#006600');
                 stroke('#bbada0');
                 strokeWeight(15);
-                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);			//
-                fill('#330000');							// xroma arithmou.
-                stroke('#330000');							// xroma perigrammatos arithmou.
-                strokeWeight(3);
-                textSize(36);								// megethos tou arithmou.
+                rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
+                fill('#330000');
+                stroke('#330000');
+                strokeWeight(2);
+                textSize(37);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
             }
         }
@@ -330,18 +346,39 @@ function drawGrid() {
             }
         }
     }
-    if (winner === true)
-        drawWin();
+    if (gameOver === true) {
+        drawGameOver();
+    }
 }
-function drawWin() {
-    let squareColor = color(0, 153, 153);
-    // squareColor.setAlpha(100 + 100 * sin(millis() / 1000));
-    // squareColor.setAlpha(100 + 10* sin(millis() / 1000));
-    fill(squareColor);
-    stroke(squareColor);
-    rect(145, 145, 410, 410, 3);
+function drawGameOver() {
+    filter(GRAY);
+    filter(BLUR, 2);
+    noStroke();
+    fill('gray');
+    rect(200, 270, 300, 250, 5);
+    fill('#b3cccc');
+    stroke('#000000');
+    textSize(60);
+    textFont('forte');
+    strokeWeight(5);
+    if (winner === true)
+        text('You Won!', 350, 340);
+    else
+        text('You Lost...', 350, 340);
+
 }
 
+function checkGameOver() {
+    let moveBool = playerCanMove();
+    let winBool = playerWin();
+    if (winBool || !moveBool) {
+        gameOver = true;
+        document.onkeydown = null;
+        button.show();
+        redraw();
+
+    }
+}
 function playerWin() {
     winner = false;
     for (let i = 0; i < 4; i++) {
