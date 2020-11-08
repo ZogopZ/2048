@@ -1,11 +1,11 @@
 'use strict';
-// document.addEventListener("DOMContentLoaded", () => {  // todo: probably need this.
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let grid = [];
-let map;
+let map = [];
+let winner = false;
 
 function setup() {
-    createCanvas(800, 600);
+    createCanvas(800, 650);
     grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     noRandomGen();
     // randomGen();
@@ -26,7 +26,13 @@ function arrowKeyCapture() {
             grid = map;
             if (JSON.stringify(checker) !== JSON.stringify(grid))
                 redraw();
-            checkMoves();
+            if(playerCanMove() === false)
+                alert('LOSER!');
+            if(playerWin()) {
+                document.onkeydown = null;
+                redraw();
+                alert('WINNER!!!');
+            }
         }
     }
 }
@@ -135,7 +141,28 @@ function moveAndMerge() {
     return map;
 }
 
+function noRandomGen() {
+    grid[0][0] = 1024;
+    grid[0][1] = 1024;
+    grid[0][2] = 8;
+    grid[0][3] = 16;
+    //
+    grid[1][0] = 32;
+    grid[1][1] = 64;
+    grid[1][2] = 128;
+    grid[1][3] = 256;
+    // //
+    grid[2][0] = 512;
+    grid[2][1] = 1024;
+    // grid[2][2] = 2048;
+    grid[2][3] = 16;
 
+    // grid[3][0] = 32;
+    // grid[3][1] = 64;
+    // grid[3][2] = 2;
+    // grid[3][3] = 256;
+
+}
 function randomGen() {
     let emptySpots = [];
     for (let i = 0; i < 4; i++) {
@@ -153,7 +180,6 @@ function randomGen() {
 function draw() {
     drawGrid();
 }
-
 function drawGrid() {
     randomGen();
     textFont('Cambria');
@@ -166,7 +192,8 @@ function drawGrid() {
                 strokeWeight(15);
                 rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
                 text('', j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 2) {
+            }
+            else if (grid[i][j] === 2) {
                 fill('#eee4da');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -176,7 +203,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(45);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 4) {
+            }
+            else if (grid[i][j] === 4) {
                 fill('#eee1c9');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -186,7 +214,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(45);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 8) {
+            }
+            else if (grid[i][j] === 8) {
                 fill('#f3b27a');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -196,7 +225,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(45);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 16) {
+            }
+            else if (grid[i][j] === 16) {
                 fill('#f69664');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -206,7 +236,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(43);
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 32) {
+            }
+            else if (grid[i][j] === 32) {
                 fill('#f77c5f');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -216,7 +247,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(43)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 64) {
+            }
+            else if (grid[i][j] === 64) {
                 fill('#f75f3b');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -227,7 +259,8 @@ function drawGrid() {
                 ;
                 textSize(43)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 128) {
+            }
+            else if (grid[i][j] === 128) {
                 fill('#edd073');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -237,7 +270,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(40)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 256) {
+            }
+            else if (grid[i][j] === 256) {
                 fill('#edcc62');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -247,7 +281,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(40)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 512) {
+            }
+            else if (grid[i][j] === 512) {
                 fill('#edc950');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -257,7 +292,8 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(40)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 1024) {
+            }
+            else if (grid[i][j] === 1024) {
                 fill('#edc53f');
                 stroke('#bbada0');
                 strokeWeight(15);
@@ -267,14 +303,13 @@ function drawGrid() {
                 strokeWeight(5);
                 textSize(35)
                 text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 2048) {
-                // fill('#ffff00');
+            }
+            else if (grid[i][j] === 2048) {
                 fill('#739900');
                 stroke('#bbada0');
                 strokeWeight(15);
                 rect(j * 100 + 150, i * 100 + 150, 100, 100, 2);
-                fill('#ff0000');
-                // fill('#b8b894');
+                fill('#b8b894');
                 stroke('#000000');
                 strokeWeight(5);
                 textSize(35)
@@ -282,31 +317,28 @@ function drawGrid() {
             }
         }
     }
+    if (winner === true)
+        drawWin();
 }
-function noRandomGen() {
-    grid[0][0] = 2;
-    grid[0][1] = 4;
-    grid[0][2] = 8;
-    grid[0][3] = 16;
-    //
-    grid[1][0] = 32;
-    grid[1][1] = 64;
-    grid[1][2] = 128;
-    grid[1][3] = 256;
-    // //
-    grid[2][0] = 512;
-    grid[2][1] = 1024;
-    grid[2][2] = 2048;
-    grid[2][3] = 16;
-
-    // grid[3][0] = 32;
-    // grid[3][1] = 64;
-    // grid[3][2] = 2;
-    // grid[3][3] = 256;
-
+function drawWin() {
+    let squareColor = color(100, 50, 100);
+    squareColor.setAlpha(128 + 128 * sin(millis() / 1000));
+    fill(squareColor);
+    noStroke();
+    rect(100, 100, 500, 500, 10);
 }
 
-function checkMoves() {  // todo: this needs a lot of work.
+function playerWin() {
+    winner = false;
+    for (let i = 0; i < 4; i++) {
+        if (grid[i].some((x) => x === 2048)) {
+            winner = true;
+            break;
+        }
+    }
+    return winner;
+}
+function playerCanMove() {
     let canMove = false;
     let emptyTiles = false;
     for (let i = 0; i < 4; i++) {
@@ -317,14 +349,12 @@ function checkMoves() {  // todo: this needs a lot of work.
         }
     }
     if (!emptyTiles) {
-        if(!checkEqualNeighbours())
-            alert('Game Over');
+        canMove = checkEqualNeighbours();
     }
     return canMove;
 }
-
 function checkEqualNeighbours() {
-    let canMove = false;
+    let canMerge = false;
     let neighbourSide;
     let neighbourBelow;
     for (let i = 0; i < 4; i++) {
@@ -333,14 +363,13 @@ function checkEqualNeighbours() {
             neighbourBelow = grid[i + 1];
             if (neighbourSide !== undefined) {
                 if (grid[i][j] === grid[i][j + 1])
-                    canMove = true;
+                    canMerge = true;
                 if (neighbourBelow !== undefined) {
                     if (grid[i][j] === grid[i + 1][j])
-                        canMove = true;
+                        canMerge = true;
                 }
             }
         }
     }
-    return canMove;
+    return canMerge;
 }
-// }
