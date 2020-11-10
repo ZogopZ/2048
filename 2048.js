@@ -1,4 +1,5 @@
 'use strict';
+let gameContainer = document.getElementById('game-container');
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let pressed = 0;
 let grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
@@ -6,27 +7,30 @@ let map = [];
 let checker = [];
 let gameOver = false;
 let winner = false;
-let divContainer = document.getElementById('div-container');
-let canvas = document.createElement('canvas');
-divContainer.appendChild(canvas);
-let ctx = canvas.getContext('2d');
-canvas.width = 416;
-canvas.height = 416;
-canvas.style.marginTop = '150px';
-canvas.style.marginLeft = '150px';
-let button; 
+let gameCanvas;
+let ctx;
+let gameOverCanvas;
+let ctxGameOver;
+let button;
 
 setup();
 
 function setup() {
-    drawCanvas();
+    createGameCanvasElem();
+    createNewGameButton();
     // noRandomGen();
     // randomGen();
     // randomGen();
-    simulateGameOverLose();
+    // simulateGameOverLose();
+    simulateGameOverWin();
     drawGrid();
     arrowKeyCapture();
 }
+
+/**
+ * Maps the numbers of the game grid accordingly, by capturing which arrow key
+ * was pressed. The result is stored in 'map' array.
+ * */
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
     function checkKey(e) {
@@ -62,8 +66,30 @@ function mapKey(e) {
         pressed = 'left';
 }
 
-/* Maps the numbers of the game grid accordingly, by capturing which
-arrow key was pressed. The result is stored in 'map' array.*/
+function createGameCanvasElem() {
+    gameCanvas = document.createElement('canvas');
+    gameContainer.appendChild(gameCanvas);
+    ctx = gameCanvas.getContext('2d');
+    gameCanvas.width = 416;
+    gameCanvas.height = 416;
+    gameCanvas.style.marginTop = '150px';
+    gameCanvas.style.marginLeft = '150px';
+    drawCanvas();
+}
+function createGameOverCanvas() {
+    gameOverCanvas = document.createElement('canvas');
+    gameContainer.appendChild(gameOverCanvas);
+    ctxGameOver = gameOverCanvas.getContext('2d');
+    gameOverCanvas.style.position = 'absolute'
+    gameOverCanvas.style.top = '215px';
+    gameOverCanvas.style.left = '120px';
+    gameOverCanvas.width = 480;
+    gameOverCanvas.height = 300;
+    // gameOverCanvas.height = 200;
+    // gameOverCanvas.style.marginTop = '150px';
+    // gameOverCanvas.style.marginLeft = '150px';
+    drawGameOverCanvas();
+}
 
 
 function randomGen() {
@@ -143,6 +169,7 @@ function simulateGameOverLose() {
     grid[3][3] = 16;
 }
 
+
 function drawCanvas() {
     ctx.beginPath();
     ctx.fillStyle = '#a08c79';
@@ -191,6 +218,42 @@ function animate() {
         ctx.drawImage(img, x, y, 84, 84);
         if (x <= maxX)
             requestAnimationFrame(animate);
+    }
+}
+function drawGameOverCanvas() {
+    ctxGameOver.fillStyle = '#a08c79';
+    // ctxGameOver.roundRect(0, 0, 464, 293, 10).stroke();
+    ctxGameOver.roundRect(20, 20, 440, 265,
+        {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
+}
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
+    let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
+    if (typeof stroke == "undefined") {
+        stroke = true;
+    }
+    if (typeof radius === "object") {
+        for (let side in radius) {
+            cornerRadius[side] = radius[side];
+        }
+    }
+    this.beginPath();
+    this.lineWidth = 20;
+    this.moveTo(x + cornerRadius.upperLeft, y);
+    this.lineTo(x + width - cornerRadius.upperRight, y);
+    this.quadraticCurveTo(x + width, y, x + width, y + cornerRadius.upperRight);
+    this.lineTo(x + width, y + height - cornerRadius.lowerRight);
+    this.quadraticCurveTo(x + width, y + height, x + width - cornerRadius.lowerRight, y + height);
+    this.lineTo(x + cornerRadius.lowerLeft, y + height);
+    this.quadraticCurveTo(x, y + height, x, y + height - cornerRadius.lowerLeft);
+    this.lineTo(x, y + cornerRadius.upperLeft);
+    this.quadraticCurveTo(x, y, x + cornerRadius.upperLeft, y);
+    this.closePath();
+    this.strokeStyle = '#a08c79';
+    if (stroke) {
+        this.stroke();
+    }
+    if (fill) {
+        this.fill();
     }
 }
 
@@ -303,26 +366,40 @@ function drawGameOver() {
 
 }
 function createNewGameButton() {
-    button = createButton('New Game');
-    button.position(280, 400);
-    button.style('background-color', '#a3c2c2');
-    button.style('border', 'none');
-    button.style('font-size', '30px');
-    button.style('font-family', 'forte');
-    button.style('border-radius', '12px');
-    button.mousePressed(function () {
-        button.hide();
-        winner = false;
-        gameOver = false;
+    button = document.createElement('button');
+    button.innerHTML = ('Try again...');
+    button.style.position = 'absolute';
+    button.style.top = '337px';
+    button.style.left = '267px'
+    button.style.height = '50px';
+    button.style.width = '350';
+    button.style.fontFamily = 'algerian';
+    button.style.fontSize = '30px';
+    button.style.visibility = 'hidden';
+    button.style.backgroundColor = 'transparent';
+    button.style.borderStyle = 'solid';
+    button.style.borderColor = '#000000';
+    button.style.borderWidth = '1px';
+    button.style.borderRadius = '7px';
+    button.addEventListener('click',function () {
+        button.style.visibility = 'hidden';
+        ctx.filter = 'blur()';  // Remove blurring effect to redraw correctly the canvas for a new game.
+        ctxGameOver.clearRect(0, 0, gameOverCanvas.width, gameOverCanvas.height);  // Clear the game over canvas of the previous game.
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);  // Clear the game canvas of the previous game
+        drawCanvas();  // Draw the canvas for the new game.
+        winner = false;  // Reset value for new game.
+        gameOver = false;  // Reset value for new game.
         for (let i = 0; i < 4; i++) {
             for (let j = 0; j < 4; j++)
                 grid[i][j] = 0;
         }
         randomGen();
+        randomGen();
         arrowKeyCapture();
-        redraw();
+        drawGrid();
     });
-    button.hide();
+    document.body.appendChild(button);
+    return button;
 }
 
 function mapGrid(e) {
@@ -390,18 +467,56 @@ function moveAndMerge() {
     });
     return map;
 }
-
+let CanvasImage = function (canvas, image) {
+    if(!image) {
+        image = new Image();
+        image.src = canvas.toDataURL("image/png");
+    }
+    this.image = image;
+    this.canvas = canvas;
+    this.canvas.width = image.width;
+    this.canvas.height = image.height;
+    this.context = canvas.getContext("2d");
+    this.context.drawImage(image, 0, 0);
+};
+CanvasImage.prototype.blur = function (strength) {
+    this.context.globalAlpha = 0.5; // Higher alpha made it more smooth
+    // Add blur layers by strength to x and y
+    // 2 made it a bit faster without noticeable quality loss
+    for (let y = -strength; y <= strength; y += 2) {
+        for (let x = -strength; x <= strength; x += 2) {
+            // Apply layers
+            this.context.drawImage(this.canvas, x, y);
+            // Add an extra layer, prevents it from rendering lines
+            // on top of the images (does makes it slower though)
+            if (x >= 0 && y >= 0) {
+                this.context.drawImage(this.canvas, -(x - 1), -(y - 1));
+            }
+        }
+    }
+    this.context.globalAlpha = 1.0;
+};
 function checkGameOver() {
     let moveBool = playerCanMove();
     let winBool = playerWin();
     if (winBool || !moveBool) {
         gameOver = true;
         document.onkeydown = null;
-        button.show();
-        redraw();
 
+        setTimeout(function() {
+            button.style.visibility = 'visible';
+            let image = new Image();
+            image.src = gameCanvas.toDataURL();
+            image.onload = function () {
+                let canvasImage = new CanvasImage(gameCanvas, this);
+                canvasImage.blur(2);
+            };
+            // createGameOverCanvas();
+        }, 1000);
     }
 }
+
+
 function playerWin() {
     winner = false;
     for (let i = 0; i < 4; i++) {
@@ -447,3 +562,6 @@ function checkEqualNeighbours() {
     }
     return canMerge;
 }
+
+// todo: GAME OVER PROBLEM YOU CAN SEE IT USING THE simulateGameOver function.
+// todo: properly display last move.
