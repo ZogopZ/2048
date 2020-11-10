@@ -1,10 +1,13 @@
 'use strict';
+let gameSim = true;
+// let gameSim = false;
 let gameContainer = document.getElementById('game-container');
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let pressed = 0;
 let grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 let map = [];
 let checker = [];
+let animVector = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 let gameOver = false;
 let winner = false;
 let gameCanvas;
@@ -16,12 +19,14 @@ let button;
 setup();
 
 function setup() {
+
     createGameCanvasElem();
     createNewGameButton();
+    (gameSim === false ? (randomGen(), randomGen()) : noRandomGen());
     // noRandomGen();
-    // randomGen();
-    // randomGen();
-    simulateGameOverLose();
+    // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
+    // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
+    // simulateGameOverLose();
     // simulateGameOverWin();
     drawGrid();
     arrowKeyCapture();
@@ -44,7 +49,7 @@ function arrowKeyCapture() {
                 // redraw();  // todo: is this needed? Why was it here?
                 grid = map;
                 if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved at least one tile so we need to redraw the canvas.
-                    randomGen();
+                    (gameSim === false ? randomGen() : null);
                     drawGrid();
                     console.log('**************PREVIOUS STATE**************' + '   key pressed: ' + e.key);
                     console.table(checker);
@@ -106,9 +111,9 @@ function randomGen() {
     }
 }
 function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
-    grid[0][0] = 0;
-    grid[0][1] = 0;
-    grid[0][2] = 0;
+    grid[0][0] = 2;
+    grid[0][1] = 2;
+    grid[0][2] = 2;
     grid[0][3] = 2;
     //
     // grid[1][0] = 2;
@@ -196,21 +201,18 @@ function drawGrid() {
     }
 }
 function animate() {
-    // animation related variables
-    let minX=16 + 8 + 84;        // Keep the image animating
-    let maxX=3 * 84 + 4 * 16;       // between minX & maxX
-    let x=minX;         // The current X-coordinate
-    let speedX=11;       // The image will move at 1px per loop
-    let direction=1;    // The image direction: 1==righward, -1==leftward
-    let y = 16;           // The Y-coordinate
-
+    let minX=16 + 8 + 84;  // Keep the image animating
+    let maxX=3 * 84 + 4 * 16;  // between minX & maxX
+    let x=minX;  // The current X-coordinate
+    let speedX=11;  // The image will move at 1px per loop
+    let direction=1;  // The image direction: 1==righward, -1==leftward
+    let y = 16;  // The Y-coordinate
     let img=new Image();
     img.onload=start;
     img.src="assets/2.png";
     function start(){
         requestAnimationFrame(animate);
     }
-
     function animate(time){
         ctx.clearRect(x, y, 84, 84);
         x += speedX * direction;
@@ -227,97 +229,6 @@ function drawGameOverCanvas() {
         {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
 }
 
-function drawSpecial() {
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            if (grid[i][j] === 1024 || grid[i][j] === 2048) {
-                noFill();
-                stroke('#ffffcc');
-                strokeWeight(1);
-                rect(j * 100 + 157, i * 100 + 157, 86, 86, 1);
-            }
-        }
-    }
-}
-function drawNumbers() {
-    // randomGen();
-    // textFont('Gill Sans');
-    textFont('comic sans');
-    textAlign(CENTER, CENTER);
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            if (grid[i][j] === 0) {
-                text('', j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 2) {
-                fill('#669999');
-                stroke('#669999');
-                strokeWeight(3);
-                textSize(45);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 4) {
-                fill('#009999');
-                stroke('#009999');
-                strokeWeight(3);
-                textSize(45);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 8) {
-                fill('#006699');
-                stroke('#006699');
-                strokeWeight(3);
-                textSize(45);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 16) {
-                fill('#007dcc');
-                stroke('#007dcc');
-                strokeWeight(3);
-                textSize(43);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 32) {
-                fill('#993399');
-                stroke('#993333');
-                strokeWeight(3);
-                textSize(43);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 64) {
-                fill('#993333');
-                stroke('#993333');
-                strokeWeight(3);
-                textSize(43)
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 128) {
-                fill('#990033');
-                stroke('#990033');
-                strokeWeight(3);
-                textSize(41);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 256) {
-                fill('#660033');
-                stroke('#660033');
-                strokeWeight(3);
-                textSize(41);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 512) {
-                fill('#66001a');
-                stroke('#66001a');
-                strokeWeight(3);
-                textSize(41);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 1024) {
-                fill('#660000');
-                stroke('#660000');
-                strokeWeight(2);
-                textSize(37);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            } else if (grid[i][j] === 2048) {
-                fill('#330000');
-                stroke('#330000');
-                strokeWeight(2);
-                textSize(37);
-                text(grid[i][j], j * 100 + 400 / 2, i * 100 + 400 / 2);
-            }
-        }
-    }
-}
 function drawGameOver() {
     filter(GRAY);
     filter(BLUR, 2);
@@ -413,28 +324,36 @@ function mapGrid(e) {
     return map;
 }
 function moveAndMerge() {
-    map.forEach(function (slice) {
+    animVector = [];
+    map.forEach(function(slice, index) {
+        let objects = [];
         let mergeController = 0;
         for (let j = 0; j < 4; j++) {
-            if (slice[j] === 0 || j === 0)  // No need to check the first item of the slice. Also zero is not set to merge.
+            if (slice[j] === 0 || j === 0) {  // No need to check the first item of the slice. Also zero is not set to merge.
+                objects.push({number: slice[j], weight: 0});
                 continue;
+            }
             for (let i = mergeController; i < j; i++) {
                 if (slice[i] === 0) {  // Found a zero spot.
+                    objects.push({number: slice[j], weight: j - i});
                     slice[i] = slice[j];  // Move current 'slice[j]' here.
                     slice[j] = 0;  //  Set 'slice[j]' spot to zero.
                     mergeController = i;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
                     break;
                 }
                 else if (slice[i] === slice[j]) {  // Found matching numbers.
+                    objects.push({number: slice[j], weight: j - i});
                     slice[i] <<= 1;  // Multiply number by two.
                     slice[j] = 0;  // Set 'j's previous spot to zero.
                     mergeController = i + 1;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
                     break;
                 }
-                mergeController += 1;  //
-            }
+                mergeController += 1;  // 'slice[j]' could not find a 'slice[i]' to move into. On the next for loop
+            }                          // slice[j] is allowed to merge from 'slice[mergeController]' and afterwards.
         }
+        animVector.push(objects);
     });
+    console.table(animVector);
     return map;
 }
 let CanvasImage = function (canvas, image) {
@@ -469,7 +388,7 @@ CanvasImage.prototype.blur = function (strength) {
 function checkGameOver() {
     let moveBool = playerCanMove();
     let winBool = playerWin();
-    console.log('Player can move: ' + moveBool + ', Won: ' + winBool);
+    console.log('CURRENT-STATE --> Player can move: ' + moveBool + ', Won: ' + winBool);
     if (winBool || !moveBool) {
         gameOver = true;
         document.onkeydown = null;
@@ -522,7 +441,7 @@ function checkEqualNeighbours() {
             home = grid[i][j];
             neighbourSide = (j === 3) ? undefined : grid[i][j + 1];
             neighbourBelow = (i === 3) ? undefined : grid[i + 1][j];
-            console.log('Home: ' + home + ', Neighbour Side: ' + neighbourSide + ', Neighbour Below: ' + neighbourBelow);
+            console.log('CURRENT-STATE --> Home: ' + home + ', Neighbour Side: ' + neighbourSide + ', Neighbour Below: ' + neighbourBelow);
             if (neighbourSide !== undefined) {
                 if (home === neighbourSide) {
                     canMerge = true;
@@ -542,7 +461,6 @@ function checkEqualNeighbours() {
     return canMerge;
 }
 
-// todo: properly display last move.
 CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
     let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
     if (typeof stroke == "undefined") {
