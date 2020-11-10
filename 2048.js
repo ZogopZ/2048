@@ -124,24 +124,24 @@ function randomGen() {
 }
 function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
     grid[0][0] = 2;
-    grid[0][1] = 2;
-    grid[0][2] = 2;
+    // grid[0][1] = 2;
+    // grid[0][2] = 2;
     grid[0][3] = 32;
     //
     grid[1][0] = 2;
     // grid[1][1] = 2;
     // grid[1][2] = 2;
-    // grid[1][3] = 2;
+    grid[1][3] = 2;
     //
     grid[2][0] = 2;
     // grid[2][1] = 4;
     // grid[2][2] = 8;
-    // grid[2][3] = 16;
+    grid[2][3] = 2;
 
-    grid[3][0] = 32;
+    grid[3][0] = 2;
     // grid[3][1] = 64;
     // grid[3][2] = 128;
-    // grid[3][3] = 1024;
+    grid[3][3] = 1024;
 }
 function simulateGameOverWin() {
     grid[0][0] = 2;
@@ -214,15 +214,13 @@ function drawZero(x, y) {
 function animate(e) {
     animVector.forEach(function (slice, sliceIndex) {
         if (e.key === 'ArrowUp') {
-            console.log(slice);
             for (let i = 0; i < slice.length; i++) {
                 if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
                     continue;
-                let startPoint = 16 + i * 100;  // todo: rename this to start generally.
+                let startPoint = 16 + i * 100;
                 let endPoint = startPoint - slice[i].weight * 100;
                 let movePoint = startPoint;
-                // let speed = (startPoint - endPoint) / 8;
-                let speed = 1;
+                let speed = (startPoint - endPoint) / 8;
                 let direction = -1;
                 let constantAxis = 16 + sliceIndex * 100;
                 console.log('Y start: ' + startPoint + ', Y to end: ' + endPoint);
@@ -235,8 +233,8 @@ function animate(e) {
                      movePoint += speed * direction;
                     drawCanvas();
                     // drawZero(startX, y);
-                    ctx.drawImage(images[slice[i].number], 16, movePoint, 84, 84);
-                    if (movePoint <= endPoint + speed)
+                    ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
+                    if (movePoint >= endPoint + speed)
                         requestAnimationFrame(animate);
                     else
                         drawNumbers();
@@ -244,6 +242,37 @@ function animate(e) {
                     ctx.fillRect(16, 16, 5, 5);
                     ctx.fillRect(16, 116, 5, 5);
                     ctx.fillRect(16, 216, 5, 5);
+                }
+            }
+        }
+        else if (e.key === 'ArrowDown') {
+            console.log(slice);
+            for (let i = 0; i < slice.length; i++) {
+                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+                    continue;
+                let startPoint = 16 + (slice.length - 1 - i) * 100;
+                let endPoint = startPoint + slice[i].weight * 100;
+                let movePoint = startPoint;
+                let speed = (endPoint - startPoint) / 8;
+                let direction = 1;
+                let constantAxis = 16 + sliceIndex * 100;
+                console.log('Y start: ' + startPoint + ', Y to end: ' + endPoint);
+                start();
+                function start() {
+                    requestAnimationFrame(animate);
+                }
+                function animate(time) {
+                    // ctx.clearRect(x, y, 84, 84);
+                    movePoint += speed * direction;
+                    drawCanvas();
+                    // drawZero(startX, y);
+                    ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
+                    if (movePoint <= endPoint + speed) {
+                        console.log(movePoint);
+                        requestAnimationFrame(animate);
+                    }
+                    else
+                        drawNumbers();
                 }
             }
         }
