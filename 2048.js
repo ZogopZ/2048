@@ -21,8 +21,8 @@ function setup() {
     // noRandomGen();
     // randomGen();
     // randomGen();
-    // simulateGameOverLose();
-    simulateGameOverWin();
+    simulateGameOverLose();
+    // simulateGameOverWin();
     drawGrid();
     arrowKeyCapture();
 }
@@ -106,10 +106,10 @@ function randomGen() {
     }
 }
 function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
-    // grid[0][0] = 0;
-    // grid[0][1] = 0;
-    // grid[0][2] = 0;
-    // grid[0][3] = 0;
+    grid[0][0] = 0;
+    grid[0][1] = 0;
+    grid[0][2] = 0;
+    grid[0][3] = 2;
     //
     // grid[1][0] = 2;
     // grid[1][1] = 2;
@@ -225,36 +225,6 @@ function drawGameOverCanvas() {
     // ctxGameOver.roundRect(0, 0, 464, 293, 10).stroke();
     ctxGameOver.roundRect(20, 20, 440, 265,
         {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
-}
-CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
-    let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
-    if (typeof stroke == "undefined") {
-        stroke = true;
-    }
-    if (typeof radius === "object") {
-        for (let side in radius) {
-            cornerRadius[side] = radius[side];
-        }
-    }
-    this.beginPath();
-    this.lineWidth = 20;
-    this.moveTo(x + cornerRadius.upperLeft, y);
-    this.lineTo(x + width - cornerRadius.upperRight, y);
-    this.quadraticCurveTo(x + width, y, x + width, y + cornerRadius.upperRight);
-    this.lineTo(x + width, y + height - cornerRadius.lowerRight);
-    this.quadraticCurveTo(x + width, y + height, x + width - cornerRadius.lowerRight, y + height);
-    this.lineTo(x + cornerRadius.lowerLeft, y + height);
-    this.quadraticCurveTo(x, y + height, x, y + height - cornerRadius.lowerLeft);
-    this.lineTo(x, y + cornerRadius.upperLeft);
-    this.quadraticCurveTo(x, y, x + cornerRadius.upperLeft, y);
-    this.closePath();
-    this.strokeStyle = '#a08c79';
-    if (stroke) {
-        this.stroke();
-    }
-    if (fill) {
-        this.fill();
-    }
 }
 
 function drawSpecial() {
@@ -499,6 +469,7 @@ CanvasImage.prototype.blur = function (strength) {
 function checkGameOver() {
     let moveBool = playerCanMove();
     let winBool = playerWin();
+    console.log('Player can move: ' + moveBool + ', Won: ' + winBool);
     if (winBool || !moveBool) {
         gameOver = true;
         document.onkeydown = null;
@@ -537,31 +508,68 @@ function playerCanMove() {
             break;
         }
     }
-    if (!emptyTiles) {
+    if (emptyTiles === false)
         canMove = checkEqualNeighbours();
-    }
     return canMove;
 }
 function checkEqualNeighbours() {
     let canMerge = false;
+    let home;
     let neighbourSide;
     let neighbourBelow;
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-            neighbourSide = grid[i][j + 1];
-            neighbourBelow = grid[i + 1];
+            home = grid[i][j];
+            neighbourSide = (j === 3) ? undefined : grid[i][j + 1];
+            neighbourBelow = (i === 3) ? undefined : grid[i + 1][j];
+            console.log('Home: ' + home + ', Neighbour Side: ' + neighbourSide + ', Neighbour Below: ' + neighbourBelow);
             if (neighbourSide !== undefined) {
-                if (grid[i][j] === grid[i][j + 1])
+                if (home === neighbourSide) {
                     canMerge = true;
-                if (neighbourBelow !== undefined) {
-                    if (grid[i][j] === grid[i + 1][j])
-                        canMerge = true;
+                    break;
+                }
+            }
+            if (home === neighbourBelow) {
+                if (grid[i][j] === grid[i + 1][j]) {
+                    canMerge = true;
+                    break;
                 }
             }
         }
+        if (canMerge === true)
+            break;
     }
     return canMerge;
 }
 
-// todo: GAME OVER PROBLEM YOU CAN SEE IT USING THE simulateGameOver function.
 // todo: properly display last move.
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
+    let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
+    if (typeof stroke == "undefined") {
+        stroke = true;
+    }
+    if (typeof radius === "object") {
+        for (let side in radius) {
+            cornerRadius[side] = radius[side];
+        }
+    }
+    this.beginPath();
+    this.lineWidth = 20;
+    this.moveTo(x + cornerRadius.upperLeft, y);
+    this.lineTo(x + width - cornerRadius.upperRight, y);
+    this.quadraticCurveTo(x + width, y, x + width, y + cornerRadius.upperRight);
+    this.lineTo(x + width, y + height - cornerRadius.lowerRight);
+    this.quadraticCurveTo(x + width, y + height, x + width - cornerRadius.lowerRight, y + height);
+    this.lineTo(x + cornerRadius.lowerLeft, y + height);
+    this.quadraticCurveTo(x, y + height, x, y + height - cornerRadius.lowerLeft);
+    this.lineTo(x, y + cornerRadius.upperLeft);
+    this.quadraticCurveTo(x, y, x + cornerRadius.upperLeft, y);
+    this.closePath();
+    this.strokeStyle = '#a08c79';
+    if (stroke) {
+        this.stroke();
+    }
+    if (fill) {
+        this.fill();
+    }
+}
