@@ -1,8 +1,9 @@
 'use strict';
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
+let pressed = 0;
 let grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 let map = [];
-let positions = [];
+let checker = [];
 let gameOver = false;
 let winner = false;
 let divContainer = document.getElementById('div-container');
@@ -13,174 +14,58 @@ canvas.width = 416;
 canvas.height = 416;
 canvas.style.marginTop = '150px';
 canvas.style.marginLeft = '150px';
-// let button; // todo: DO NOT FORGET TO REIMPLEMENT THIS!
+let button; 
 
 setup();
 
 function setup() {
     drawCanvas();
-    randomGen();
-    randomGen();
+    // noRandomGen();
+    // randomGen();
+    // randomGen();
+    simulateGameOverLose();
     drawGrid();
-    console.table(grid);
     arrowKeyCapture();
 }
 function arrowKeyCapture() {
     document.onkeydown = checkKey;
     function checkKey(e) {
-        let checker = grid;  // This is used to compare current and previous state of game board.
-        positions = grid;
+        checker = JSON.parse(JSON.stringify(grid));  // This is used to compare current and previous state of game board.
         map = [];
         e = e || window.Event;
+        mapKey(e);
         if (arrows.includes(e.key)) {
             if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3])) {
                 map = mapGrid(e);
                 // redraw();  // todo: is this needed? Why was it here?
                 grid = map;
                 if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved at least one tile so we need to redraw the canvas.
+                    randomGen();
                     drawGrid();
+                    console.log('**************PREVIOUS STATE**************' + '   key pressed: ' + e.key);
+                    console.table(checker);
+                    console.log('END');
                 }
                 checkGameOver();
-                console.log('|')
-                console.log('START STATE TABLE BELOW');
-                console.table(checker);
-                console.table(grid);
-                console.log('END STATE TABLE ABOVE');
-                console.log('|');
-                console.table(positions);
             }
         }
     }
+}
+function mapKey(e) {
+    if (e.key === 'ArrowUp')
+        pressed = 'up';
+    else if (e.key === 'ArrowDown')
+        pressed = 'down';
+    else if (e.key === 'ArrowRight')
+        pressed = 'right';
+    else if (e.key === 'ArrowLeft')
+        pressed = 'left';
 }
 
 /* Maps the numbers of the game grid accordingly, by capturing which
 arrow key was pressed. The result is stored in 'map' array.*/
-function mapGrid(e) {
-    let gridPart;
-    if (e.key === arrows[0] || e.key === arrows[1]) {  // Arrow up or arrow down was pressed.
-        for (let i = 0; i < 4; i++) {
-            gridPart = [];
-            for (let j = 0; j < 4; j++) {
-                gridPart.push(grid[j][i]);  // Get column slices from the 'grid' array, left to right.
-            }
-            map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
-            if (e.key === arrows[1])  // Arrow down case only!
-                map[i].reverse();  // Need to reverse each row to 'moveAndMerge()' correctly.
-        }
-    } else if (e.key === arrows[2] || e.key === arrows[3]) {  // Arrow right or left down was pressed.
-        for (let i = 0; i < 4; i++) {
-            gridPart = grid[i];
-            console.log('tsvis');
-            console.log(gridPart);
-            map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
-            console.log(map);
-            if (e.key === arrows[2])  // Arrow right case only!
-                map[i].reverse();
-        }
-    }
-    map = moveAndMerge();
-    let transferMap = [];
-    if (e.key === arrows[0] || e.key === arrows[1]) {
-        for (let i = 0; i < 4; i++) {
-            gridPart = [];
-            for (let j = 0; j < 4; j++) {
-                gridPart.push(map[j][i]);
-            }
-            if (e.key === arrows[1])
-                transferMap.unshift(gridPart);
-            else
-                transferMap.push(gridPart);
-        }
-        map = transferMap;
-    }
-    if (e.key === arrows[2])
-        map.forEach((line) => line.reverse());
-    return map;
-}
-function moveAndMerge() {
-    map.forEach(function (slice) {
-        if (slice.length === 1) {
-            slice[1] = 0;
-            slice[2] = 0;
-            slice[3] = 0;
-        } else if (slice.length === 2) {
-            if (slice[0] === slice[1]) {
-                slice[0] <<= 1;
-                slice[1] = 0;
-                slice[2] = 0;
-                slice[3] = 0;
-            } else if (slice[0] !== slice[1]) {
-                slice[2] = 0;
-                slice[3] = 0;
-            }
-        } else if (slice.length === 3) {
-            if (slice[0] === slice[1]) {
-                slice[0] <<= 1;
-                slice[1] = slice[2];
-                slice[2] = 0;
-                slice[3] = 0;
-            } else if (slice[1] === slice[2]) {
-                slice[1] <<= 1;
-                slice[2] = 0;
-                slice[3] = 0;
-            } else
-                slice[3] = 0;
-        } else if (slice.length === 4) {
-            if ((slice[0] === slice[1]) && (slice[2] === slice[3]) && (slice[1] !== slice[2])) {
-                slice[0] <<= 1;
-                slice[1] = slice[2] << 1;
-                slice[2] = 0
-                slice[3] = 0
-            } else if ((slice[0] === slice[1]) && (slice[2] === slice[3])) {
-                slice[0] <<= 1;
-                slice[1] <<= 1;
-                slice[2] = 0;
-                slice[3] = 0;
-            } else if ((slice[0] === slice[1]) && (slice[2] !== slice[3])) {
-                slice[0] <<= 1;
-                slice[1] = slice[2];
-                slice[2] = slice[3];
-                slice[3] = 0;
-            } else if (slice[1] === slice[2]) {
-                slice[1] <<= 1;
-                slice[2] = slice[3];
-                slice[3] = 0;
-            } else if (slice[2] === slice[3]) {
-                slice[2] <<= 1;
-                slice[3] = 0;
-            }
-        } else if (slice.length === 0) {
-            slice[0] = 0;
-            slice[1] = 0;
-            slice[2] = 0;
-            slice[3] = 0;
-        }
-    });
-    return map;
-}
 
-// This function is used for testing only. It hardcodes numbers on specified tiles.
-function noRandomGen() {
-    // grid[0][0] = 2;
-    // grid[0][1] = 4;
-    // grid[0][2] = 256;
-    grid[0][3] = 512;
-    //
-    grid[1][0] = 2048;
-    grid[1][1] = 512;
-    // grid[1][2] = 512;
-    // grid[1][3] = 256;
-    // //
-    // grid[2][0] = 2;
-    // grid[2][1] = 4;
-    // grid[2][2] = 8;
-    // grid[2][3] = 16;
-    //
-    // grid[3][0] = 32;
-    // grid[3][1] = 64;
-    // grid[3][2] = 128;
-    // grid[3][3] = 1024;
-}
+
 function randomGen() {
     let emptySpots = [];
     for (let i = 0; i < 4; i++) {
@@ -192,8 +77,28 @@ function randomGen() {
     if (emptySpots.length > 0) {
         let spot = emptySpots[Math.floor(Math.random()*emptySpots.length)];
         grid[spot.x][spot.y] = Math.random() > 0.1 ? 2 : 4;
-        console.log(spot);
     }
+}
+function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
+    // grid[0][0] = 0;
+    // grid[0][1] = 0;
+    // grid[0][2] = 0;
+    // grid[0][3] = 0;
+    //
+    // grid[1][0] = 2;
+    // grid[1][1] = 2;
+    // grid[1][2] = 2;
+    // grid[1][3] = 2;
+    // //
+    // grid[2][0] = 2;
+    // grid[2][1] = 4;
+    // grid[2][2] = 8;
+    // grid[2][3] = 16;
+    //
+    // grid[3][0] = 32;
+    // grid[3][1] = 64;
+    // grid[3][2] = 128;
+    // grid[3][3] = 1024;
 }
 function simulateGameOverWin() {
     grid[0][0] = 2;
@@ -237,7 +142,6 @@ function simulateGameOverLose() {
     grid[3][2] = 8;
     grid[3][3] = 16;
 }
-
 
 function drawCanvas() {
     ctx.beginPath();
@@ -398,28 +302,94 @@ function drawGameOver() {
         text('You Lose...', 350, 340);
 
 }
-// function createNewGameButton() {
-//     button = createButton('New Game');
-//     button.position(280, 400);
-//     button.style('background-color', '#a3c2c2');
-//     button.style('border', 'none');
-//     button.style('font-size', '30px');
-//     button.style('font-family', 'forte');
-//     button.style('border-radius', '12px');
-//     button.mousePressed(function () {
-//         button.hide();
-//         winner = false;
-//         gameOver = false;
-//         for (let i = 0; i < 4; i++) {
-//             for (let j = 0; j < 4; j++)
-//                 grid[i][j] = 0;
-//         }
-//         randomGen();
-//         arrowKeyCapture();
-//         redraw();
-//     });
-//     button.hide();
-// }
+function createNewGameButton() {
+    button = createButton('New Game');
+    button.position(280, 400);
+    button.style('background-color', '#a3c2c2');
+    button.style('border', 'none');
+    button.style('font-size', '30px');
+    button.style('font-family', 'forte');
+    button.style('border-radius', '12px');
+    button.mousePressed(function () {
+        button.hide();
+        winner = false;
+        gameOver = false;
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++)
+                grid[i][j] = 0;
+        }
+        randomGen();
+        arrowKeyCapture();
+        redraw();
+    });
+    button.hide();
+}
+
+function mapGrid(e) {
+    let gridPart;
+    if (e.key === arrows[0] || e.key === arrows[1]) {  // Arrow up or arrow down was pressed.
+        for (let i = 0; i < 4; i++) {
+            gridPart = [];
+            for (let j = 0; j < 4; j++) {
+                gridPart.push(grid[j][i]);  // Get column slices from the 'grid' array, left to right.
+            }
+            map.push(gridPart);
+            // map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
+            if (e.key === arrows[1])  // Arrow down case only!
+                map[i].reverse();  // Need to reverse each row to 'moveAndMerge()' correctly.
+        }
+    } else if (e.key === arrows[2] || e.key === arrows[3]) {  // Arrow right or left down was pressed.
+        for (let i = 0; i < 4; i++) {
+            gridPart = grid[i];
+            map.push(gridPart);
+            if (e.key === arrows[2])  // Arrow right case only!
+                map[i].reverse();
+        }
+    }
+    map = moveAndMerge();
+    let transferMap = [];
+    if (e.key === arrows[0] || e.key === arrows[1]) {
+        for (let i = 0; i < 4; i++) {
+            gridPart = [];
+            for (let j = 0; j < 4; j++) {
+                gridPart.push(map[j][i]);
+            }
+            if (e.key === arrows[1])
+                transferMap.unshift(gridPart);
+            else
+                transferMap.push(gridPart);
+        }
+        map = transferMap;
+    }
+    if (e.key === arrows[2])
+        map.forEach((line) => line.reverse());
+    return map;
+}
+function moveAndMerge() {
+    map.forEach(function (slice) {
+        let mergeController = 0;
+        for (let j = 0; j < 4; j++) {
+            if (slice[j] === 0 || j === 0)  // No need to check the first item of the slice. Also zero is not set to merge.
+                continue;
+            for (let i = mergeController; i < j; i++) {
+                if (slice[i] === 0) {  // Found a zero spot.
+                    slice[i] = slice[j];  // Move current 'slice[j]' here.
+                    slice[j] = 0;  //  Set 'slice[j]' spot to zero.
+                    mergeController = i;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
+                    break;
+                }
+                else if (slice[i] === slice[j]) {  // Found matching numbers.
+                    slice[i] <<= 1;  // Multiply number by two.
+                    slice[j] = 0;  // Set 'j's previous spot to zero.
+                    mergeController = i + 1;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
+                    break;
+                }
+                mergeController += 1;  //
+            }
+        }
+    });
+    return map;
+}
 
 function checkGameOver() {
     let moveBool = playerCanMove();
@@ -477,7 +447,3 @@ function checkEqualNeighbours() {
     }
     return canMerge;
 }
-
-
-
-
