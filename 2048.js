@@ -1,6 +1,11 @@
 'use strict';
 let gameSim = true;
 // let gameSim = false;
+let imageFiles = [
+    'assets/0.png', 'assets/2.png', 'assets/4.png', 'assets/8.png',
+    'assets/16.png', 'assets/32.png', 'assets/64.png', 'assets/128.png',
+    'assets/256.png', 'assets/512.png', 'assets/1024.png', 'assets/2048.png'];
+let images = {};
 let gameContainer = document.getElementById('game-container');
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let pressed = 0;
@@ -16,10 +21,9 @@ let gameOverCanvas;
 let ctxGameOver;
 let button;
 
-setup();
+loadImages().then(() => setup());
 
 function setup() {
-
     createGameCanvasElem();
     createNewGameButton();
     (gameSim === false ? (randomGen(), randomGen()) : noRandomGen());
@@ -28,10 +32,22 @@ function setup() {
     // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
     // simulateGameOverLose();
     // simulateGameOverWin();
-    drawGrid();
+    drawNumbers();
     arrowKeyCapture();
 }
-
+async function loadImages() {
+    const promiseArray = [];  // create an array for promises
+    for (let imageUrl of imageFiles) {
+        promiseArray.push(new Promise(resolve => {
+            let numImage = new Image();
+            numImage.onload = resolve;
+            numImage.src = imageUrl;
+            let key = imageUrl.replace('assets/', '').replace('.png', '');
+            images[key] = numImage;
+        }));
+    }
+    await Promise.all(promiseArray);  // wait for all the images to be loaded
+}
 /**
  * Maps the numbers of the game grid accordingly, by capturing which arrow key
  * was pressed. The result is stored in 'map' array.
@@ -46,12 +62,11 @@ function arrowKeyCapture() {
         if (arrows.includes(e.key)) {
             if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3])) {
                 map = mapGrid(e);
-                // redraw();  // todo: is this needed? Why was it here?
                 grid = map;
                 if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved at least one tile so we need to redraw the canvas.
                     (gameSim === false ? randomGen() : null);
-                    drawGrid();
-                    console.log('**************PREVIOUS STATE**************' + '   key pressed: ' + e.key);
+                    animate(e);
+                    console.log('**************PREVIOUS STATE below**************' + '\nkey pressed: ' + e.key);
                     console.table(checker);
                     console.log('END');
                 }
@@ -90,9 +105,6 @@ function createGameOverCanvas() {
     gameOverCanvas.style.left = '120px';
     gameOverCanvas.width = 480;
     gameOverCanvas.height = 300;
-    // gameOverCanvas.height = 200;
-    // gameOverCanvas.style.marginTop = '150px';
-    // gameOverCanvas.style.marginLeft = '150px';
     drawGameOverCanvas();
 }
 
@@ -114,19 +126,19 @@ function noRandomGen() {  // This function is used for testing only. It hardcode
     grid[0][0] = 2;
     grid[0][1] = 2;
     grid[0][2] = 2;
-    grid[0][3] = 2;
+    grid[0][3] = 32;
     //
-    // grid[1][0] = 2;
+    grid[1][0] = 2;
     // grid[1][1] = 2;
     // grid[1][2] = 2;
     // grid[1][3] = 2;
-    // //
-    // grid[2][0] = 2;
+    //
+    grid[2][0] = 2;
     // grid[2][1] = 4;
     // grid[2][2] = 8;
     // grid[2][3] = 16;
-    //
-    // grid[3][0] = 32;
+
+    grid[3][0] = 32;
     // grid[3][1] = 64;
     // grid[3][2] = 128;
     // grid[3][3] = 1024;
@@ -177,7 +189,7 @@ function simulateGameOverLose() {
 
 function drawCanvas() {
     ctx.beginPath();
-    ctx.fillStyle = '#a08c79';
+    ctx.fillStyle = 'transparent';
     ctx.fillRect(0, 0, 450, 450);
     ctx.stroke();
     for (let i = 0; i < 4; i++) {
@@ -189,38 +201,113 @@ function drawCanvas() {
         }
     }
 }
-function drawGrid() {
+function drawNumbers() {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-            let img = new Image();
-            img.addEventListener('load', function(){
-                ctx.drawImage(img, j * 100 + 16, i * 100 + 16, 84, 84);
-            });
-            img.src = 'assets/' + grid[i][j] + '.png';
+            ctx.drawImage(images[grid[i][j]], j * 100 + 16, i * 100 + 16, 84, 84);
         }
     }
 }
-function animate() {
-    let minX=16 + 8 + 84;  // Keep the image animating
-    let maxX=3 * 84 + 4 * 16;  // between minX & maxX
-    let x=minX;  // The current X-coordinate
-    let speedX=11;  // The image will move at 1px per loop
-    let direction=1;  // The image direction: 1==righward, -1==leftward
-    let y = 16;  // The Y-coordinate
-    let img=new Image();
-    img.onload=start;
-    img.src="assets/2.png";
-    function start(){
-        requestAnimationFrame(animate);
-    }
-    function animate(time){
-        ctx.clearRect(x, y, 84, 84);
-        x += speedX * direction;
-        drawCanvas();
-        ctx.drawImage(img, x, y, 84, 84);
-        if (x <= maxX)
-            requestAnimationFrame(animate);
-    }
+function drawZero(x, y) {
+    ctx.drawImage(images[0], x, y, 84, 84);
+}
+function animate(e) {
+    animVector.forEach(function (slice, sliceIndex) {
+        if (e.key === 'ArrowUp') {
+            console.log(slice);
+            for (let i = 0; i < slice.length; i++) {
+                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+                    continue;
+                let startPoint = 16 + i * 100;  // todo: rename this to start generally.
+                let endPoint = startPoint - slice[i].weight * 100;
+                let movePoint = startPoint;
+                // let speed = (startPoint - endPoint) / 8;
+                let speed = 1;
+                let direction = -1;
+                let constantAxis = 16 + sliceIndex * 100;
+                console.log('Y start: ' + startPoint + ', Y to end: ' + endPoint);
+                start();
+                function start() {
+                    requestAnimationFrame(animate);
+                }
+                function animate(time) {
+                    // ctx.clearRect(x, y, 84, 84);
+                     movePoint += speed * direction;
+                    drawCanvas();
+                    // drawZero(startX, y);
+                    ctx.drawImage(images[slice[i].number], 16, movePoint, 84, 84);
+                    if (movePoint <= endPoint + speed)
+                        requestAnimationFrame(animate);
+                    else
+                        drawNumbers();
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(16, 16, 5, 5);
+                    ctx.fillRect(16, 116, 5, 5);
+                    ctx.fillRect(16, 216, 5, 5);
+                }
+            }
+        }
+        else if (e.key === 'ArrowLeft') {
+            for (let i = 0; i < slice.length; i++) {
+                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+                    continue;
+                let startX = 16 + i * 100;  // todo: analogo kai me to y pou einai to sliceIndex...
+                let endX = startX - slice[i].weight * 100;
+                let x = startX;
+                let speed = (startX - endX) / 8;
+                let direction = -1;
+                let y = 16 + sliceIndex * 100;
+                console.log('X to reach: ' + endX + ', X to start: ' + startX);
+                start();
+                function start() {
+                    requestAnimationFrame(animate);
+                }
+                function animate(time) {
+                    // ctx.clearRect(x, y, 84, 84);
+                    x += speed * direction;
+                    drawCanvas();
+                    // drawZero(startX, y);
+                    ctx.drawImage(images[slice[i].number], x, y, 84, 84);
+                    if (x >= endX + speed)
+                        requestAnimationFrame(animate);
+                    else
+                        drawNumbers();
+                }
+            }
+        }
+        else if (e.key === 'ArrowRight') {
+            for (let i = 3; i >= 0; i--) {
+                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+                    continue;
+                let startX = 16 + i * 100;  // todo: analogo kai me to y pou einai to sliceIndex...
+                let endX = startX + slice[i].weight * 100;
+                let x = startX;
+                let speed = (endX - startX) / 8;
+                let direction = 1;
+                let y = 16;
+                console.log('X to reach: ' + endX + ', X to start: ' + startX);
+                start();
+                function start() {
+                    requestAnimationFrame(animate);
+                }
+                function animate(time) {
+                    console.log(x, y);
+                    // ctx.clearRect(x, y, 84, 84);
+                    x += speed * direction;
+                    drawZero(startX, y);
+                    drawCanvas();
+                    ctx.drawImage(images[slice[i].number], x, y, 84, 84);
+                    if (x <= endX + speed)
+                        requestAnimationFrame(animate);
+                    else {
+                        drawNumbers();
+                        drawCanvas();
+                    }
+
+                }
+            }
+        }
+    });
 }
 function drawGameOverCanvas() {
     ctxGameOver.fillStyle = '#a08c79';
@@ -228,7 +315,6 @@ function drawGameOverCanvas() {
     ctxGameOver.roundRect(20, 20, 440, 265,
         {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
 }
-
 function drawGameOver() {
     filter(GRAY);
     filter(BLUR, 2);
@@ -306,21 +392,31 @@ function mapGrid(e) {
     }
     map = moveAndMerge();
     let transferMap = [];
+    let animPart = [];
+    let transferMap2 = [];
     if (e.key === arrows[0] || e.key === arrows[1]) {
         for (let i = 0; i < 4; i++) {
             gridPart = [];
+            animPart = [];
             for (let j = 0; j < 4; j++) {
                 gridPart.push(map[j][i]);
+                animPart.push(animVector[j][i])
             }
             if (e.key === arrows[1])
                 transferMap.unshift(gridPart);
-            else
+            else {
                 transferMap.push(gridPart);
+                transferMap2.push(animPart);
+            }
         }
+        // animVector = transferMap2;
         map = transferMap;
     }
-    if (e.key === arrows[2])
-        map.forEach((line) => line.reverse());
+    if (e.key === arrows[2]) {
+        map.forEach((slice) => slice.reverse());
+        animVector.forEach((slice) => slice.reverse());
+    }
+    console.table(animVector);
     return map;
 }
 function moveAndMerge() {
@@ -329,13 +425,16 @@ function moveAndMerge() {
         let objects = [];
         let mergeController = 0;
         for (let j = 0; j < 4; j++) {
+            let objectPushed = false;
             if (slice[j] === 0 || j === 0) {  // No need to check the first item of the slice. Also zero is not set to merge.
-                objects.push({number: slice[j], weight: 0});
+                objects.push({number: slice[j], weight: -1});
+                objectPushed = true;
                 continue;
             }
             for (let i = mergeController; i < j; i++) {
                 if (slice[i] === 0) {  // Found a zero spot.
-                    objects.push({number: slice[j], weight: j - i});
+                    objects.push({number: slice[j], weight: (j - i) === 0 ? - 1 : j - i});
+                    objectPushed = true;
                     slice[i] = slice[j];  // Move current 'slice[j]' here.
                     slice[j] = 0;  //  Set 'slice[j]' spot to zero.
                     mergeController = i;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
@@ -343,6 +442,7 @@ function moveAndMerge() {
                 }
                 else if (slice[i] === slice[j]) {  // Found matching numbers.
                     objects.push({number: slice[j], weight: j - i});
+                    objectPushed = true;
                     slice[i] <<= 1;  // Multiply number by two.
                     slice[j] = 0;  // Set 'j's previous spot to zero.
                     mergeController = i + 1;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
@@ -350,10 +450,11 @@ function moveAndMerge() {
                 }
                 mergeController += 1;  // 'slice[j]' could not find a 'slice[i]' to move into. On the next for loop
             }                          // slice[j] is allowed to merge from 'slice[mergeController]' and afterwards.
+            if (objectPushed === false)
+                objects.push({number: slice[j], weight: -1})  // todo: maybe rework this if any time is left.
         }
         animVector.push(objects);
     });
-    console.table(animVector);
     return map;
 }
 let CanvasImage = function (canvas, image) {
@@ -392,7 +493,6 @@ function checkGameOver() {
     if (winBool || !moveBool) {
         gameOver = true;
         document.onkeydown = null;
-
         setTimeout(function() {
             button.style.visibility = 'visible';
             let image = new Image();
