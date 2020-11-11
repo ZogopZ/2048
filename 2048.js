@@ -1,6 +1,6 @@
 'use strict';
-let gameSim = true;
-// let gameSim = false;
+// let gameSim = true;
+let gameSim = false;
 let imageFiles = [
     'assets/0.png', 'assets/2.png', 'assets/4.png', 'assets/8.png',
     'assets/16.png', 'assets/32.png', 'assets/64.png', 'assets/128.png',
@@ -123,25 +123,25 @@ function randomGen() {
     }
 }
 function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
-    grid[0][0] = 2;
+    // grid[0][0] = 32;
     // grid[0][1] = 2;
-    // grid[0][2] = 2;
-    grid[0][3] = 32;
-    //
-    grid[1][0] = 2;
-    // grid[1][1] = 2;
-    // grid[1][2] = 2;
-    grid[1][3] = 2;
-    //
-    grid[2][0] = 2;
-    // grid[2][1] = 4;
-    // grid[2][2] = 8;
-    grid[2][3] = 2;
+    grid[0][2] = 2;
+    grid[0][3] = 2;
 
-    grid[3][0] = 2;
+    // grid[1][0] = 2;
+    // grid[1][1] = 2;
+    // grid[1][2] = 512;
+    // grid[1][3] = 2;
+    //
+    // grid[2][0] = 2;
+    // grid[2][1] = 512;
+    // grid[2][2] = 8;
+    // grid[2][3] = 2;
+    //
+    // grid[3][0] = 1024;
     // grid[3][1] = 64;
     // grid[3][2] = 128;
-    grid[3][3] = 1024;
+    // grid[3][3] = 1024;
 }
 function simulateGameOverWin() {
     grid[0][0] = 2;
@@ -208,131 +208,78 @@ function drawNumbers() {
         }
     }
 }
-function drawZero(x, y) {
-    ctx.drawImage(images[0], x, y, 84, 84);
-}
 function animate(e) {
     animVector.forEach(function (slice, sliceIndex) {
-        if (e.key === 'ArrowUp') {
-            for (let i = 0; i < slice.length; i++) {
-                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
-                    continue;
-                let startPoint = 16 + i * 100;
-                let endPoint = startPoint - slice[i].weight * 100;
-                let movePoint = startPoint;
-                let speed = (startPoint - endPoint) / 8;
-                let direction = -1;
-                let constantAxis = 16 + sliceIndex * 100;
-                console.log('Y start: ' + startPoint + ', Y to end: ' + endPoint);
-                start();
-                function start() {
-                    requestAnimationFrame(animate);
-                }
-                function animate(time) {
-                    // ctx.clearRect(x, y, 84, 84);
-                     movePoint += speed * direction;
+        for (let i = 0; i < slice.length; i++) {
+            let startPoint;
+            let endPoint;
+            let movePoint;
+            let speed;
+            let direction;
+            let constantAxis = 16 + sliceIndex * 100;
+            if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+                continue;
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                startPoint = 16 + i * 100;
+                endPoint = startPoint - slice[i].weight * 100;
+                movePoint = startPoint;
+                speed = (startPoint - endPoint) / 4;
+                direction = -1;
+            }
+            else if (e.key === 'ArrowDown') {
+                startPoint = 16 + (slice.length - 1 - i) * 100;
+                endPoint = startPoint + slice[i].weight * 100;
+                movePoint = startPoint;
+                speed = (endPoint - startPoint) / 4;
+                direction = 1;
+            }
+            else if (e.key === 'ArrowRight') {
+                startPoint = 16 + i * 100;
+                endPoint = startPoint + slice[i].weight * 100;
+                movePoint = startPoint;
+                speed = (endPoint - startPoint) / 4;
+                direction = 1;
+            }
+            start();
+            function start() {
+                requestAnimationFrame(animate);
+            }
+            function animate(time) {
+                movePoint += speed * direction;
+                if (e.key === 'ArrowUp') {
                     drawCanvas();
-                    // drawZero(startX, y);
+                    ctx.drawImage(images[0], constantAxis, startPoint, 84, 84);
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
                     if (movePoint >= endPoint + speed)
                         requestAnimationFrame(animate);
                     else
                         drawNumbers();
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(16, 16, 5, 5);
-                    ctx.fillRect(16, 116, 5, 5);
-                    ctx.fillRect(16, 216, 5, 5);
-                }
-            }
-        }
-        else if (e.key === 'ArrowDown') {
-            console.log(slice);
-            for (let i = 0; i < slice.length; i++) {
-                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
-                    continue;
-                let startPoint = 16 + (slice.length - 1 - i) * 100;
-                let endPoint = startPoint + slice[i].weight * 100;
-                let movePoint = startPoint;
-                let speed = (endPoint - startPoint) / 8;
-                let direction = 1;
-                let constantAxis = 16 + sliceIndex * 100;
-                console.log('Y start: ' + startPoint + ', Y to end: ' + endPoint);
-                start();
-                function start() {
-                    requestAnimationFrame(animate);
-                }
-                function animate(time) {
-                    // ctx.clearRect(x, y, 84, 84);
-                    movePoint += speed * direction;
+                } else if (e.key === 'ArrowDown') {
                     drawCanvas();
-                    // drawZero(startX, y);
+                    ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
-                    if (movePoint <= endPoint + speed) {
+                    if (movePoint <= endPoint - 1)
+                        requestAnimationFrame(animate);
+                    else
+                        drawNumbers();
+                } else if (e.key === 'ArrowRight') {
+                    drawCanvas();
+                    ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
+                    ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
+                    if (movePoint <= endPoint - speed)
+                        requestAnimationFrame(animate);
+                    else
+                        drawNumbers();
+                } else if (e.key === 'ArrowLeft') {
+                    drawCanvas();
+                    ctx.drawImage(images[0], movePoint, constantAxis, 84, 84);
+                    ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
+                    if (movePoint >= endPoint + speed) {
                         console.log(movePoint);
                         requestAnimationFrame(animate);
                     }
                     else
                         drawNumbers();
-                }
-            }
-        }
-        else if (e.key === 'ArrowLeft') {
-            for (let i = 0; i < slice.length; i++) {
-                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
-                    continue;
-                let startX = 16 + i * 100;  // todo: analogo kai me to y pou einai to sliceIndex...
-                let endX = startX - slice[i].weight * 100;
-                let x = startX;
-                let speed = (startX - endX) / 8;
-                let direction = -1;
-                let y = 16 + sliceIndex * 100;
-                console.log('X to reach: ' + endX + ', X to start: ' + startX);
-                start();
-                function start() {
-                    requestAnimationFrame(animate);
-                }
-                function animate(time) {
-                    // ctx.clearRect(x, y, 84, 84);
-                    x += speed * direction;
-                    drawCanvas();
-                    // drawZero(startX, y);
-                    ctx.drawImage(images[slice[i].number], x, y, 84, 84);
-                    if (x >= endX + speed)
-                        requestAnimationFrame(animate);
-                    else
-                        drawNumbers();
-                }
-            }
-        }
-        else if (e.key === 'ArrowRight') {
-            for (let i = 3; i >= 0; i--) {
-                if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
-                    continue;
-                let startX = 16 + i * 100;  // todo: analogo kai me to y pou einai to sliceIndex...
-                let endX = startX + slice[i].weight * 100;
-                let x = startX;
-                let speed = (endX - startX) / 8;
-                let direction = 1;
-                let y = 16;
-                console.log('X to reach: ' + endX + ', X to start: ' + startX);
-                start();
-                function start() {
-                    requestAnimationFrame(animate);
-                }
-                function animate(time) {
-                    console.log(x, y);
-                    // ctx.clearRect(x, y, 84, 84);
-                    x += speed * direction;
-                    drawZero(startX, y);
-                    drawCanvas();
-                    ctx.drawImage(images[slice[i].number], x, y, 84, 84);
-                    if (x <= endX + speed)
-                        requestAnimationFrame(animate);
-                    else {
-                        drawNumbers();
-                        drawCanvas();
-                    }
-
                 }
             }
         }
