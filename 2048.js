@@ -5,8 +5,8 @@ let imageFiles = [
     'assets/0.png', 'assets/2.png', 'assets/4.png', 'assets/8.png',
     'assets/16.png', 'assets/32.png', 'assets/64.png', 'assets/128.png',
     'assets/256.png', 'assets/512.png', 'assets/1024.png', 'assets/2048.png'];
-let images = {};
-let gameContainer = document.getElementById('game-container');
+const images = {};
+const gameContainer = document.getElementById('game-container');
 const arrows = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'];
 let pressed = 0;
 let grid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
@@ -17,72 +17,113 @@ let gameOver = false;
 let winner = false;
 let gameCanvas;
 let ctx;
-let gameOverCanvas;
-let ctxGameOver;
-let button;
+let gameOverButton;
+let newGameButton;
 
+// Preload requested resources and run 'setup()'.
 loadImages().then(() => setup());
 
+/**
+ * Initiates the game page along with important properties.
+ */
 function setup() {
     createGameCanvasElem();
     createNewGameButton();
-    createGameOverBtn();
+    createGameOverButton();
     createHowTo();
-    (gameSim === false ? (randomGen(), randomGen()) : noRandomGen());
-    // noRandomGen();
-    // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
-    // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
-    simulateGameOverLose();
+    gameSim ? noRandomGen() : randomGen();
+    gameSim ? noRandomGen() : randomGen();
+    // simulateGameOverLose();
     // simulateGameOverWin();
     drawNumbers();
     arrowEvent();
     swipeEvent();
 }
+
+/**
+ * Resets the game board to the initial condition.
+ */
+function resetGame() {
+    // Clear the game canvas of the previous game
+    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    // Draw the canvas for the new game.
+    drawGrid();
+    winner = false;  // Reset value for new game.
+    gameOver = false;  // Reset value for new game.
+    for(let i = 0; i < 4; i++) {
+        for(let j = 0; j < 4; j++)
+            grid[i][j] = 0;
+    }
+    randomGen();
+    randomGen();
+    arrowEvent();
+    drawNumbers();
+}
+
+/**
+ * Preloads the number images from directory 'assets' so they can be referenced
+ * during tha animations faster without waiting for each image's 'load event'.
+ * @returns {Promise<void>}
+ */
 async function loadImages() {
-    const promiseArray = [];  // create an array for promises
-    for (let imageUrl of imageFiles) {
+    const promiseArray = [];
+    for(let imageUrl of imageFiles) {
         promiseArray.push(new Promise(resolve => {
             let numImage = new Image();
             numImage.onload = resolve;
             numImage.src = imageUrl;
             let key = imageUrl.replace('assets/', '').replace('.png', '');
-            images[key] = numImage;
+            images[key] = numImage;  // Fill global object 'images' with number images.
         }));
     }
-    await Promise.all(promiseArray);  // wait for all the images to be loaded
+    await Promise.all(promiseArray);  // Wait for all the images to be loaded.
 }
 /**
  * Maps the numbers of the game grid accordingly, by capturing which arrow key
- * was pressed. The result is stored in 'map' array.
+ * was pressed or which swipe event occurred.
  * */
 function arrowEvent() {
     document.onkeydown = checkKey;
     function checkKey(e) {
-        checker = JSON.parse(JSON.stringify(grid));  // This is used to compare current and previous state of game board.
+        // Use this to later compare current and previous state of game board.
+        checker = JSON.parse(JSON.stringify(grid));
         map = [];
-        e = e || window.Event;
+        e = e || window.Event;  // IE compatibility.
         mapKey(e);
-        if (arrows.includes(e.key)) {
-            if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3])) {
-                map = mapGrid(e);
-                grid = map;
-                if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved so we need to animate the canvas.
-                    (gameSim === false ? randomGen() : null);
-                    animate(e);
-                    console.log('**************PREVIOUS STATE below**************' + '\nkey pressed: ' + e.key);
-                    console.table(checker);
-                    console.log('END');
-                }
-                checkGameOver();
+        // If an arrow or swipe event was captured.
+        if(arrows.includes(e.key)) {
+            map = mapGrid(e);
+            grid = map;
+            // Player moved so we need to animate the canvas.
+            if(JSON.stringify(checker) !== JSON.stringify(grid)) {
+                // Generate a new random number on the board.
+                // This will also work while simulating.
+                randomGen();
+                animate(e);
+                let simString =
+                    '**************PREVIOUS STATE below**************' +
+                    '\nkey pressed ' + e.key;
+                // Log debug information to console.
+                // These will only work while simulating.
+                gameSim ? console.log(simString) : null;
+                gameSim ? console.table(checker) : null;
+                gameSim ? console.log('END'): null;
             }
+            checkGameOver();
         }
     }
 }
+
+/**
+ * Captures a swipe event and then fires a relevant arrow event captured and
+ * processed by 'checkKey()' function.
+ */
 function swipeEvent() {
     let touchStartY = 0;
     let touchStartX = 0;
     let touchEndY = 0;
     let touchEndX = 0;
+    let swipe;
     gameContainer.addEventListener('touchstart', function(event) {
         touchStartY = event.changedTouches[0].screenY;
         touchStartX = event.changedTouches[0].screenX;
@@ -95,8 +136,11 @@ function swipeEvent() {
         handleSwipe();
     }, false);
 
+    // todo: Do not fire a keydown event for each swipe, but instead create...
+    // todo: ...a function to handle both swipes and keydown.
     function handleSwipe() {
-        if (touchEndY < touchStartY) {
+        if(touchEndY < touchStartY) {
+            swipe = 'SwipeUp';
             document.dispatchEvent(new KeyboardEvent('keydown', {
                 target: 'body',
                 key: 'ArrowUp',
@@ -104,7 +148,8 @@ function swipeEvent() {
                 keyCode: 38
             }));
         }
-        else if (touchEndY > touchStartY) {
+        else if(touchEndY > touchStartY) {
+            swipe = 'SwipeDown';
             document.dispatchEvent(new KeyboardEvent('keydown', {
                 target: 'body',
                 key: 'ArrowDown',
@@ -113,7 +158,8 @@ function swipeEvent() {
             }));
         }
 
-        else if (touchEndX > touchStartX) {
+        else if(touchEndX > touchStartX) {
+            swipe = 'SwipeRight';
             document.dispatchEvent(new KeyboardEvent('keydown', {
                 target: 'body',
                 key: 'ArrowRight',
@@ -121,7 +167,8 @@ function swipeEvent() {
                 keyCode: 39
             }));
         }
-        else if (touchEndX < touchStartX) {
+        else if(touchEndX < touchStartX) {
+            swipe = 'SwipeLeft'
             document.dispatchEvent(new KeyboardEvent('keydown', {
                 target: 'body',
                 key: 'ArrowLeft',
@@ -132,17 +179,24 @@ function swipeEvent() {
     }
 }
 
+/**
+ * Assigns key presses or swipes.
+ */
 function mapKey(e) {
-    if (e.key === 'ArrowUp')
+    if(e.key === 'ArrowUp' || e === 'SwipeUp')
         pressed = 'up';
-    else if (e.key === 'ArrowDown')
+    else if(e.key === 'ArrowDown' || e === 'SwipeDown')
         pressed = 'down';
-    else if (e.key === 'ArrowRight')
+    else if(e.key === 'ArrowRight' || e === 'SwipeRight')
         pressed = 'right';
-    else if (e.key === 'ArrowLeft')
+    else if(e.key === 'ArrowLeft' || e === 'SwipeLeft')
         pressed = 'left';
 }
 
+/**
+ * Creates a 416 x 416 canvas and globally assigns the canvas id and its
+ * context. Then proceeds to draw the canvas.
+ */
 function createGameCanvasElem() {
     gameCanvas = document.createElement('canvas');
     gameContainer.appendChild(gameCanvas);
@@ -153,33 +207,21 @@ function createGameCanvasElem() {
     gameCanvas.style.marginLeft = '150px';
     drawGrid();
 }
-function createGameOverCanvas() {
-    gameOverCanvas = document.createElement('canvas');
-    gameContainer.appendChild(gameOverCanvas);
-    ctxGameOver = gameOverCanvas.getContext('2d');
-    gameOverCanvas.style.position = 'absolute'
-    gameOverCanvas.style.top = '215px';
-    gameOverCanvas.style.left = '120px';
-    gameOverCanvas.width = 480;
-    gameOverCanvas.height = 300;
-    drawGameOverCanvas();
-}
-
 
 /**
  * Generates a random integer 2 or 4 and inserts it in a random empty spot of
- * the game's 'grid' array. The propability of generating a 2 is 90% and the
+ * the game's 'grid' array. The probability of generating a 2 is 90% and the
  * probability of generating a 4 is 10%.
  */
 function randomGen() {
     let emptySpots = [];
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            if (grid[i][j] === 0)
+    for(let i = 0; i < 4; i++) {
+        for(let j = 0; j < 4; j++) {
+            if(grid[i][j] === 0)
                 emptySpots.push({x: i, y: j});
         }
     }
-    if (emptySpots.length > 0) {
+    if(emptySpots.length > 0) {
         let spot = emptySpots[Math.floor(Math.random()*emptySpots.length)];
         grid[spot.x][spot.y] = Math.random() > 0.1 ? 2 : 4;
     }
@@ -190,11 +232,11 @@ function randomGen() {
  * 'simulateGameOverLose()' below are used to assess game situations and for
  * debugging purposes.
  */
-function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
+function noRandomGen() {
     // grid[0][0] = 32;
     // grid[0][1] = 2;
-    grid[0][2] = 2;
-    grid[0][3] = 2;
+    // grid[0][2] = 2;
+    // grid[0][3] = 2;
 
     // grid[1][0] = 2;
     // grid[1][1] = 2;
@@ -211,7 +253,7 @@ function noRandomGen() {  // This function is used for testing only. It hardcode
     // grid[3][2] = 128;
     // grid[3][3] = 1024;
 }
-function simulateGameOverWin() {  // This function is used for testing only. It hardcodes a win situation.
+function simulateGameOverWin() {
     grid[0][0] = 2;
     grid[0][1] = 4;
     grid[0][2] = 256;
@@ -232,7 +274,7 @@ function simulateGameOverWin() {  // This function is used for testing only. It 
     grid[3][2] = 1024;
     grid[3][3] = 1024;
 }
-function simulateGameOverLose() {  // This function is used for testing only. It hardcodes a lose situation.
+function simulateGameOverLose() {
     grid[0][0] = 2;
     grid[0][1] = 4;
     grid[0][2] = 256;
@@ -254,14 +296,16 @@ function simulateGameOverLose() {  // This function is used for testing only. It
     grid[3][3] = 16;
 }
 
-
+/**
+ * Draws the grid of the game without the numbers within.
+ */
 function drawGrid() {
     ctx.beginPath();
     ctx.fillStyle = 'transparent';
     ctx.fillRect(0, 0, 450, 450);
     ctx.stroke();
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
+    for(let i = 0; i < 4; i++) {
+        for(let j = 0; j < 4; j++) {
             ctx.lineWidth = 16;
             ctx.strokeStyle = '#bbada0';
             ctx.rect(j * 100 + 8, i * 100 + 8, 100, 100);
@@ -269,39 +313,54 @@ function drawGrid() {
         }
     }
 }
+
+/**
+ * Draws the number images in 'grid' array on the canvas, by applying the same
+ * image to tiles of the same value.
+ */
 function drawNumbers() {
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
+    for(let i = 0; i < 4; i++) {
+        for(let j = 0; j < 4; j++) {
             ctx.drawImage(images[grid[i][j]], j * 100 + 16, i * 100 + 16, 84, 84);
         }
     }
 }
+
+/**
+ * Animates the tile movement by accessing the 'animVector' array.
+ */
 function animate(e) {
+    // Repeat for each slice of the 'animVector'.
     animVector.forEach(function (slice, sliceIndex) {
-        for (let i = 0; i < slice.length; i++) {
+        for(let i = 0; i < slice.length; i++) {
             let startPoint;
             let endPoint;
             let movePoint;
             let speed;
             let direction;
             let constantAxis = 16 + sliceIndex * 100;
-            if (slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
+            // Do not animate zero numbered tiles or numbered tiles that didn't
+            // move (weight = 0 or weight -1).
+            if(slice[i].number === 0 || slice[i].weight === 0 || slice[i].weight === -1)
                 continue;
-            else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            // Calculate the path on which each tile moves along with its speed and direction.
+            else if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 startPoint = 16 + i * 100;
                 endPoint = startPoint - slice[i].weight * 100;
                 movePoint = startPoint;
                 speed = (startPoint - endPoint) / 4;
                 direction = -1;
             }
-            else if (e.key === 'ArrowDown') {
+            // Calculate the path on which each tile moves along with its speed and direction.
+            else if(e.key === 'ArrowDown') {
                 startPoint = 16 + (slice.length - 1 - i) * 100;
                 endPoint = startPoint + slice[i].weight * 100;
                 movePoint = startPoint;
                 speed = (endPoint - startPoint) / 4;
                 direction = 1;
             }
-            else if (e.key === 'ArrowRight') {
+            // Calculate the path on which each tile moves along with its speed and direction.
+            else if(e.key === 'ArrowRight') {
                 startPoint = 16 + i * 100;
                 endPoint = startPoint + slice[i].weight * 100;
                 movePoint = startPoint;
@@ -312,143 +371,143 @@ function animate(e) {
             function start() {
                 requestAnimationFrame(animate);
             }
-            function animate(time) {
+            // Animates movement by calling the
+            // 'requestAnimationFrame()' function.
+            function animate() {
                 movePoint += speed * direction;
-                if (e.key === 'ArrowUp') {
+                if(e.key === 'ArrowUp') {
                     drawGrid();
-                    ctx.drawImage(images[0], constantAxis, startPoint, 84, 84);
+                    // todo: this maybe decreases performance (? delete)
+                    // ctx.drawImage(images[0], constantAxis, startPoint, 84, 84);
+                    // Keep drawing the numbered image until the repeat
+                    // condition below is met.
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
-                    if (movePoint >= endPoint + speed)
+                    // Repeat condition.
+                    if(movePoint >= endPoint + speed)
                         requestAnimationFrame(animate);
                     else
+                        // Animate the destination of each numbered tile.
+                        // (merging or reaching the empty position.)
                         drawNumbers();
-                } else if (e.key === 'ArrowDown') {
-                    drawGrid();;
-                    ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
+                } else if(e.key === 'ArrowDown') {
+                    drawGrid();
+                    // todo: this maybe decreases performance (? delete)
+                    // ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
+                    // Keep drawing the numbered image until the repeat
+                    // condition below is met.
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
-                    if (movePoint <= endPoint - 1)
+                    // Repeat condition.
+                    if(movePoint <= endPoint - 1)
                         requestAnimationFrame(animate);
                     else
+                        // Animate the destination of each numbered tile.
+                        // (merging or reaching the empty position.)
                         drawNumbers();
-                } else if (e.key === 'ArrowRight') {
-                    drawGrid();;
-                    ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
+                } else if(e.key === 'ArrowRight') {
+                    drawGrid();
+                    // todo: this maybe decreases performance (? delete)
+                    // ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
+                    // Keep drawing the numbered image until the repeat
+                    // condition below is met.
                     ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
-                    if (movePoint <= endPoint - speed)
+                    // Repeat condition.
+                    if(movePoint <= endPoint - speed)
                         requestAnimationFrame(animate);
                     else
+                        // Animate the destination of each numbered tile.
+                        // (merging or reaching the empty position.)
                         drawNumbers();
-                } else if (e.key === 'ArrowLeft') {
-                    drawGrid();;
-                    ctx.drawImage(images[0], movePoint, constantAxis, 84, 84);
+                } else if(e.key === 'ArrowLeft') {
+                    drawGrid();
+                    // todo: this maybe decreases performance (? delete)
+                    // ctx.drawImage(images[0], movePoint, constantAxis, 84, 84);
+                    // Keep drawing the numbered image until the repeat
+                    // condition below is met.
                     ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
-                    if (movePoint >= endPoint + speed) {
+                    // Repeat condition.
+                    if(movePoint >= endPoint + speed) {
                         requestAnimationFrame(animate);
                     }
                     else
+                        // Animate the destination of each numbered tile.
+                        // (merging or reaching the empty position.)
                         drawNumbers();
                 }
             }
         }
     });
 }
-function drawGameOverCanvas() {
-    ctxGameOver.fillStyle = '#a08c79';
-    // ctxGameOver.roundRect(0, 0, 464, 293, 10).stroke();
-    ctxGameOver.roundRect(20, 20, 440, 265,
-        {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
-}
-function createGameOverBtn() {
-    button = document.createElement('button');
-    button.innerHTML = ('Game Over<br>try again &#8634;');
-    button.style.textShadow = '0px 5px 20px #ffffff, 5px 0px 20px #ffffff, -5px 0px 20px #ffffff';
-    button.style.position = 'absolute';
-    button.style.top = '280px';
-    button.style.left = '190px'
-    button.style.height = '180px';
-    button.style.width = '350px';
-    button.style.fontFamily = 'cambria';
-    button.style.fontSize = '60px';
-    button.style.visibility = 'hidden';
-    button.style.backgroundColor = 'transparent';
-    button.style.borderStyle = 'solid';
-    button.style.borderColor = '#000000';
-    button.style.fontWeight = '#ffffff';
-    button.style.borderWidth = '1px';
-    button.style.borderRadius = '7px';
-    button.addEventListener('click',function () {
-        button.style.visibility = 'hidden';
-        ctx.filter = 'blur()';  // Remove blurring effect to redraw correctly the canvas for a new game.
-        // ctxGameOver.clearRect(0, 0, gameOverCanvas.width, gameOverCanvas.height);  // Clear the game over canvas of the previous game.
-        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);  // Clear the game canvas of the previous game
-        drawGrid();  // Draw the canvas for the new game.
-        winner = false;  // Reset value for new game.
-        gameOver = false;  // Reset value for new game.
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++)
-                grid[i][j] = 0;
-        }
-        randomGen();
-        randomGen();
-        arrowEvent();
-        drawNumbers();
+
+function createGameOverButton() {
+    gameOverButton = document.createElement('button');
+    gameOverButton.style.textShadow = '0px 5px 20px #ffffff, 5px 0px 20px #ffffff, -5px 0px 20px #ffffff';
+    gameOverButton.style.position = 'absolute';
+    gameOverButton.style.top = '280px';
+    gameOverButton.style.left = '190px'
+    gameOverButton.style.height = '180px';
+    gameOverButton.style.width = '350px';
+    gameOverButton.style.fontFamily = 'cambria';
+    gameOverButton.style.fontSize = '60px';
+    gameOverButton.style.visibility = 'hidden';
+    gameOverButton.style.backgroundColor = 'transparent';
+    gameOverButton.style.borderStyle = 'solid';
+    gameOverButton.style.borderColor = '#000000';
+    gameOverButton.style.fontWeight = '#ffffff';
+    gameOverButton.style.borderWidth = '1px';
+    gameOverButton.style.borderRadius = '7px';
+    // The game is over and the used pressed the restart button.
+    gameOverButton.addEventListener('click',function () {
+        gameOverButton.style.visibility = 'hidden';
+        newGameButton.style.visibility = 'visible';
+        resetGame();
     });
-    button.addEventListener('mouseover', function() {
-        // button.style.backgroundColor = 'rgb(200, 200, 200, 0.5)';
-        button.style.backgroundColor = 'rgb(150, 150, 150, 0.7)';
-        button.addEventListener('mouseout', function() {
-            button.style.backgroundColor = 'transparent';
+    // Hover styles.
+    gameOverButton.addEventListener('mouseover', function() {
+        gameOverButton.style.backgroundColor = 'rgb(150, 150, 150, 0.7)';
+        gameOverButton.addEventListener('mouseout', function() {
+            gameOverButton.style.backgroundColor = 'transparent';
         });
     });
-    document.body.appendChild(button);
+    document.body.appendChild(gameOverButton);
     let icon2 = document.createElement('img');
+    icon2.setAttribute('id', 'icon-2');
     icon2.src = 'assets/icon_2.png';
     icon2.style.position = 'absolute';
     icon2.style.top = '90px';
     icon2.style.left = '316px';
     icon2.style.width = '100px';
     document.body.appendChild(icon2);
-    return button;
 }
 function createNewGameButton() {
-    let newGameBtn = document.createElement('button');
-    newGameBtn.innerHTML = ('New Game');
-    newGameBtn.style.position = 'absolute';
-    newGameBtn.style.top = '80px';
-    newGameBtn.style.left = '420px'
-    newGameBtn.style.height = '50px';
-    newGameBtn.style.width = '350';
-    newGameBtn.style.fontFamily = 'cambria';
-    newGameBtn.style.fontSize = '30px';
-    newGameBtn.style.color = '#e6e6e6';
-    newGameBtn.style.backgroundColor = '#555555';
-    newGameBtn.style.borderStyle = 'solid';
-    newGameBtn.style.borderColor = '#000000';
-    newGameBtn.style.borderWidth = '1px';
-    newGameBtn.style.borderRadius = '5px';
-    document.body.appendChild(newGameBtn);
-    newGameBtn.addEventListener('click', function() {
-        // todo: fix the below.
-        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);  // Clear the game canvas of the previous game
-        drawGrid();  // Draw the canvas for the new game.
-        winner = false;  // Reset value for new game.
-        gameOver = false;  // Reset value for new game.
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++)
-                grid[i][j] = 0;
-        }
-        randomGen();
-        randomGen();
-        arrowEvent();
-        drawNumbers();
+    newGameButton = document.createElement('button');
+    newGameButton.innerHTML = ('New Game');
+    newGameButton.style.position = 'absolute';
+    newGameButton.style.top = '80px';
+    newGameButton.style.left = '420px'
+    newGameButton.style.height = '50px';
+    newGameButton.style.width = '350';
+    newGameButton.style.fontFamily = 'cambria';
+    newGameButton.style.fontSize = '30px';
+    newGameButton.style.color = '#e6e6e6';
+    newGameButton.style.backgroundColor = '#555555';
+    newGameButton.style.borderStyle = 'solid';
+    newGameButton.style.borderColor = '#000000';
+    newGameButton.style.borderWidth = '1px';
+    newGameButton.style.borderRadius = '5px';
+    document.body.appendChild(newGameButton);
+    newGameButton.addEventListener('click', function() {
+        // If the user restarts the game using 'newGameButton' while on game
+        // over screen. Hide the 'gameOverButton' before resetting the game.
+        if (gameOverButton && gameOverButton.style.visibility === 'visible')
+            gameOverButton.style.visibility = 'hidden';
+        resetGame();
     })
-    newGameBtn.addEventListener('mouseover', function(event) {
-        newGameBtn.style.backgroundColor = '#a6a6a6';
-        newGameBtn.addEventListener('mouseout', function() {
-            newGameBtn.style.backgroundColor = '#555555';
+    newGameButton.addEventListener('mouseover', function() {
+        newGameButton.style.backgroundColor = '#a6a6a6';
+        newGameButton.addEventListener('mouseout', function() {
+            newGameButton.style.backgroundColor = '#555555';
         });
     });
-
 }
 function createHowTo() {
     let howToPar1 = document.createElement('p');
@@ -461,7 +520,7 @@ function createHowTo() {
     howToPar2.style.marginLeft = '150px';
     howToPar2.style.verticalAlign = 'center';
     howToPar2.innerHTML =
-        'or swipe <img src="assets/icon_1.png" style="width: 70px; height: 70px; vertical-align: middle;">';
+        'or swipe <img src="assets/icon_1.png" alt="" style="width: 70px; height: 70px; vertical-align: middle;">';
     howToPar2.style.fontSize = '25px';
     howToPar2.style.fontFamily = 'cambria';
     gameContainer.appendChild(howToPar1);
@@ -470,87 +529,111 @@ function createHowTo() {
 
 function mapGrid(e) {
     let gridPart;
-    if (e.key === arrows[0] || e.key === arrows[1]) {  // Arrow up or arrow down was pressed.
-        for (let i = 0; i < 4; i++) {
+    // Arrow up or arrow down was pressed or swipe up or down was performed.
+    if(e.key === arrows[0] || e.key === arrows[1]) {
+        for(let i = 0; i < 4; i++) {
             gridPart = [];
-            for (let j = 0; j < 4; j++) {
-                gridPart.push(grid[j][i]);  // Get column slices from the 'grid' array, left to right.
+            for(let j = 0; j < 4; j++) {
+                // Get column slices from the 'grid' array, left to right.
+                gridPart.push(grid[j][i]);
             }
             map.push(gridPart);
-            // map.push(gridPart.filter(x => x));  // Remove zeros from 'map'.
-            if (e.key === arrows[1])  // Arrow down case only!
-                map[i].reverse();  // Need to reverse each row to 'moveAndMerge()' correctly.
+            // Arrow down or swipe down case only!
+            if(e.key === arrows[1])
+                // Need to reverse each row to 'moveAndMerge()' correctly.
+                map[i].reverse();
         }
-    } else if (e.key === arrows[2] || e.key === arrows[3]) {  // Arrow right or left down was pressed.
-        for (let i = 0; i < 4; i++) {
+
+    }
+    // Arrow right or left down was pressed or swipe right or left was
+    // performed.
+    else if(e.key === arrows[2] || e.key === arrows[3]) {
+        for(let i = 0; i < 4; i++) {
             gridPart = grid[i];
             map.push(gridPart);
-            if (e.key === arrows[2])  // Arrow right case only!
+            // Arrow right or swipe right case only!
+            if(e.key === arrows[2])
                 map[i].reverse();
         }
     }
     map = moveAndMerge();
     let transferMap = [];
-    let animPart = [];
-    let transferMap2 = [];
-    if (e.key === arrows[0] || e.key === arrows[1]) {
-        for (let i = 0; i < 4; i++) {
+    // let animPart = [];
+    // let transferMap2 = [];
+    if(e.key === arrows[0] || e.key === arrows[1]) {
+        for(let i = 0; i < 4; i++) {
             gridPart = [];
-            animPart = [];
-            for (let j = 0; j < 4; j++) {
+            // animPart = [];
+            for(let j = 0; j < 4; j++) {
                 gridPart.push(map[j][i]);
-                animPart.push(animVector[j][i])
+                // animPart.push(animVector[j][i])
             }
-            if (e.key === arrows[1])
+            if(e.key === arrows[1])
                 transferMap.unshift(gridPart);
             else {
                 transferMap.push(gridPart);
-                transferMap2.push(animPart);
+                // transferMap2.push(animPart);
             }
         }
-        // animVector = transferMap2;
         map = transferMap;
     }
-    if (e.key === arrows[2]) {
+    if(e.key === arrows[2]) {
         map.forEach((slice) => slice.reverse());
         animVector.forEach((slice) => slice.reverse());
     }
-    console.table(animVector);
+    // Log the 'animVector' to console on debug mode.
+    gameSim ? console.table(animVector): null;
     return map;
 }
 function moveAndMerge() {
     animVector = [];
-    map.forEach(function(slice, index) {
+    map.forEach(function(slice) {
         let objects = [];
         let mergeController = 0;
-        for (let j = 0; j < 4; j++) {
+        for(let j = 0; j < 4; j++) {
             let objectPushed = false;
-            if (slice[j] === 0 || j === 0) {  // No need to check the first item of the slice. Also zero is not set to merge.
+            // No need to check the first item of the slice. Also zero is not
+            // set to merge.
+            if(slice[j] === 0 || j === 0) {
                 objects.push({number: slice[j], weight: -1});
                 objectPushed = true;
                 continue;
             }
-            for (let i = mergeController; i < j; i++) {
-                if (slice[i] === 0) {  // Found a zero spot.
+            for(let i = mergeController; i < j; i++) {
+                // Found an empty spot.
+                if(slice[i] === 0) {
                     objects.push({number: slice[j], weight: (j - i) === 0 ? - 1 : j - i});
                     objectPushed = true;
-                    slice[i] = slice[j];  // Move current 'slice[j]' here.
-                    slice[j] = 0;  //  Set 'slice[j]' spot to zero.
-                    mergeController = i;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
+                    // Move current 'slice[j]' here.
+                    slice[i] = slice[j];
+                    // Set 'slice[j]' spot to empty.
+                    slice[j] = 0;
+                    // The next 'slice[j]' is allowed to merge from
+                    // 'slice[mergeController]' and afterwards.
+                    mergeController = i;
                     break;
                 }
-                else if (slice[i] === slice[j]) {  // Found matching numbers.
+                // Found matching numbers.
+                else if(slice[i] === slice[j]) {
                     objects.push({number: slice[j], weight: j - i});
                     objectPushed = true;
-                    slice[i] <<= 1;  // Multiply number by two.
-                    slice[j] = 0;  // Set 'j's previous spot to zero.
-                    mergeController = i + 1;  // The next 'slice[j]' is allowed to merge from 'slice[mergeController]' and afterwards.
+                    // Multiply number by two.
+                    slice[i] <<= 1;
+                    // Set 'j's previous spot to empty.
+                    slice[j] = 0;
+                    // The next 'slice[j]' is allowed to merge from
+                    // 'slice[mergeController]' and afterwards.
+                    mergeController = i + 1;
                     break;
                 }
-                mergeController += 1;  // 'slice[j]' could not find a 'slice[i]' to move into. On the next for loop
-            }                          // slice[j] is allowed to merge from 'slice[mergeController]' and afterwards.
-            if (objectPushed === false)
-                objects.push({number: slice[j], weight: -1})  // todo: maybe rework this if any time is left.
+                // 'slice[j]' could not find a 'slice[i]' to move into. On the
+                // next iteration slice[j] is allowed to merge from
+                // 'slice[mergeController]' and afterwards.
+                mergeController += 1;
+            }
+            // Do not animate any tiles that didn't move (weight -1).
+            if(!objectPushed)
+                objects.push({number: slice[j], weight: -1})
         }
         animVector.push(objects);
     });
@@ -569,31 +652,56 @@ let CanvasImage = function (canvas, image) {
     this.context.drawImage(image, 0, 0);
 };
 CanvasImage.prototype.blur = function (strength) {
-    this.context.globalAlpha = 0.5; // Higher alpha made it more smooth
+    // Create a smooth blur effect.
+    this.context.globalAlpha = 0.5;
     // Add blur layers by strength to x and y
-    // 2 made it a bit faster without noticeable quality loss
-    for (let y = -strength; y <= strength; y += 2) {
-        for (let x = -strength; x <= strength; x += 2) {
-            // Apply layers
+    for(let y = -strength; y <= strength; y += 2) {
+        for(let x = -strength; x <= strength; x += 2) {
+            // Apply layers.
             this.context.drawImage(this.canvas, x, y);
-            // Add an extra layer, prevents it from rendering lines
-            // on top of the images (does makes it slower though)
-            if (x >= 0 && y >= 0) {
+            // Add an extra layer.
+            if(x >= 0 && y >= 0) {
                 this.context.drawImage(this.canvas, -(x - 1), -(y - 1));
             }
         }
     }
     this.context.globalAlpha = 1.0;
 };
+
+/**
+ * This functions checks:
+ * 1. If the player has won by reaching the number 2048.
+ * 2. If the player has lost because he cannot move tiles.
+ */
 function checkGameOver() {
     let moveBool = playerCanMove();
     let winBool = playerWin();
-    console.log('CURRENT-STATE --> Player can move: ' + moveBool + ', Won: ' + winBool);
-    if (winBool || !moveBool) {
+    let simString =
+        'CURRENT-STATE --> Player can move: ' + moveBool +
+        ', Won: ' + winBool;
+    // Log debug information to console.
+    // This will only work while simulating.
+    gameSim ? console.log(simString) : null;
+    // Game over occurred. Player either won by reaching 2048 or lost because
+    // there aren't any available moves.
+    if(winBool || !moveBool) {
         gameOver = true;
+        // Do not capture keys while on game over screen.
         document.onkeydown = null;
         setTimeout(function() {
-            button.style.visibility = 'visible';
+            if(winBool) {
+                gameOverButton.style.fontSize = '50px';
+                gameOverButton.style.left = '171px'
+                gameOverButton.style.width = '390px';
+                gameOverButton.innerHTML = ('Game Over<br>Congratulations!');
+            }
+            else {
+                gameOverButton.style.left = '190px'
+                gameOverButton.style.width = '350px';
+                gameOverButton.style.fontSize = '60px';
+                gameOverButton.innerHTML = ('Game Over<br>try again &#8634;');
+            }
+            gameOverButton.style.visibility = 'visible';
             let image = new Image();
             image.src = gameCanvas.toDataURL();
             image.onload = function () {
@@ -604,95 +712,118 @@ function checkGameOver() {
     }
 }
 
-
+/**
+ * Checks the game boards for number 2048 and sets 'winner' boolean
+ * accordingly.
+ */
 function playerWin() {
     winner = false;
-    for (let i = 0; i < 4; i++) {
-        if (grid[i].some((x) => x === 2048)) {
+    for(let i = 0; i < 4; i++) {
+        if(grid[i].some((x) => x === 2048)) {
             winner = true;
             break;
         }
     }
     return winner;
 }
+
+/**
+ * Checks for empty game tiles.
+ */
 function playerCanMove() {
     let canMove = false;
     let emptyTiles = false;
-    for (let i = 0; i < 4; i++) {
-        if (grid[i].some((x) => x === 0)) {
+    for(let i = 0; i < 4; i++) {
+        if(grid[i].some((x) => x === 0)) {
             canMove = true;
             emptyTiles = true;
             break;
         }
     }
-    if (emptyTiles === false)
+    // There aren't any empty game tiles. We must check the existence of equal
+    // neighbours before declaring game over.
+    if(emptyTiles === false)
         canMove = checkEqualNeighbours();
     return canMove;
 }
+
+/**
+ * Checks for neighbouring game tiles with equal values.
+ */
 function checkEqualNeighbours() {
     let canMerge = false;
     let home;
     let neighbourSide;
     let neighbourBelow;
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
+    for(let i = 0; i < 4; i++) {
+        for(let j = 0; j < 4; j++) {
             home = grid[i][j];
             neighbourSide = (j === 3) ? undefined : grid[i][j + 1];
             neighbourBelow = (i === 3) ? undefined : grid[i + 1][j];
-            (gameSim === true ? console.log(
+            let simString = '' +
                 'CURRENT-STATE --> Home: ' + home +
                 ', Neighbour Side: ' + neighbourSide +
-                ', Neighbour Below: ' + neighbourBelow
-            ) : null);
-            if (neighbourSide !== undefined) {
-                if (home === neighbourSide) {
+                ', Neighbour Below: ' + neighbourBelow;
+            // Log debug information to console.
+            // This will only work while simulating.
+            gameSim ? console.log(simString) : null;
+            // For each tile check if there is a 'rightward' neighbour with
+            // equal numbered tile.
+            if(neighbourSide !== undefined) {
+                if(home === neighbourSide) {
                     canMerge = true;
                     break;
                 }
             }
-            if (home === neighbourBelow) {
-                if (grid[i][j] === grid[i + 1][j]) {
+            // For each tile check if there is a 'downward' neighbour with
+            // equal numbered tile.
+            if(home === neighbourBelow) {
+                if(grid[i][j] === grid[i + 1][j]) {
                     canMerge = true;
                     break;
                 }
             }
         }
-        if (canMerge === true)
+        if(canMerge)
             break;
     }
     return canMerge;
 }
 
-CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
-    let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
-    if (typeof stroke == "undefined") {
-        stroke = true;
-    }
-    if (typeof radius === "object") {
-        for (let side in radius) {
-            cornerRadius[side] = radius[side];
-        }
-    }
-    this.beginPath();
-    this.lineWidth = 20;
-    this.moveTo(x + cornerRadius.upperLeft, y);
-    this.lineTo(x + width - cornerRadius.upperRight, y);
-    this.quadraticCurveTo(x + width, y, x + width, y + cornerRadius.upperRight);
-    this.lineTo(x + width, y + height - cornerRadius.lowerRight);
-    this.quadraticCurveTo(x + width, y + height, x + width - cornerRadius.lowerRight, y + height);
-    this.lineTo(x + cornerRadius.lowerLeft, y + height);
-    this.quadraticCurveTo(x, y + height, x, y + height - cornerRadius.lowerLeft);
-    this.lineTo(x, y + cornerRadius.upperLeft);
-    this.quadraticCurveTo(x, y, x + cornerRadius.upperLeft, y);
-    this.closePath();
-    this.strokeStyle = '#a08c79';
-    if (stroke) {
-        this.stroke();
-    }
-    if (fill) {
-        this.fill();
-    }
-}
+/**
+ * Draws a round edged rectangular on the canvas according to given parameters.
+ * https://stackoverflow.com/a/7592676
+ */
+// CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius, fill, stroke) {
+//     let cornerRadius = { upperLeft: 0, upperRight: 0, lowerLeft: 0, lowerRight: 0 };
+//     if(typeof stroke == "undefined") {
+//         stroke = true;
+//     }
+//     if(typeof radius === "object") {
+//         for(let side in radius) {
+//             cornerRadius[side] = radius[side];
+//         }
+//     }
+//     this.beginPath();
+//     this.lineWidth = 20;
+//     this.moveTo(x + cornerRadius.upperLeft, y);
+//     this.lineTo(x + width - cornerRadius.upperRight, y);
+//     this.quadraticCurveTo(x + width, y, x + width, y + cornerRadius.upperRight);
+//     this.lineTo(x + width, y + height - cornerRadius.lowerRight);
+//     this.quadraticCurveTo(x + width, y + height, x + width - cornerRadius.lowerRight, y + height);
+//     this.lineTo(x + cornerRadius.lowerLeft, y + height);
+//     this.quadraticCurveTo(x, y + height, x, y + height - cornerRadius.lowerLeft);
+//     this.lineTo(x, y + cornerRadius.upperLeft);
+//     this.quadraticCurveTo(x, y, x + cornerRadius.upperLeft, y);
+//     this.closePath();
+//     this.strokeStyle = '#a08c79';
+//     if(stroke) {
+//         this.stroke();
+//     }
+//     if(fill) {
+//         this.fill();
+//     }
+// }
 
 
 
