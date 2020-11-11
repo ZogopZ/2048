@@ -26,6 +26,8 @@ loadImages().then(() => setup());
 function setup() {
     createGameCanvasElem();
     createNewGameButton();
+    createGameOverBtn();
+    createHowTo();
     (gameSim === false ? (randomGen(), randomGen()) : noRandomGen());
     // noRandomGen();
     // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
@@ -164,6 +166,11 @@ function createGameOverCanvas() {
 }
 
 
+/**
+ * Generates a random integer 2 or 4 and inserts it in a random empty spot of
+ * the game's 'grid' array. The propability of generating a 2 is 90% and the
+ * probability of generating a 4 is 10%.
+ */
 function randomGen() {
     let emptySpots = [];
     for (let i = 0; i < 4; i++) {
@@ -177,6 +184,12 @@ function randomGen() {
         grid[spot.x][spot.y] = Math.random() > 0.1 ? 2 : 4;
     }
 }
+
+/**
+ * The functions 'noRandomGen()', 'simulateGameOverWin()' and
+ * 'simulateGameOverLose()' below are used to assess game situations and for
+ * debugging purposes.
+ */
 function noRandomGen() {  // This function is used for testing only. It hardcodes numbers on specified tiles.
     // grid[0][0] = 32;
     // grid[0][1] = 2;
@@ -198,7 +211,7 @@ function noRandomGen() {  // This function is used for testing only. It hardcode
     // grid[3][2] = 128;
     // grid[3][3] = 1024;
 }
-function simulateGameOverWin() {
+function simulateGameOverWin() {  // This function is used for testing only. It hardcodes a win situation.
     grid[0][0] = 2;
     grid[0][1] = 4;
     grid[0][2] = 256;
@@ -219,7 +232,7 @@ function simulateGameOverWin() {
     grid[3][2] = 1024;
     grid[3][3] = 1024;
 }
-function simulateGameOverLose() {
+function simulateGameOverLose() {  // This function is used for testing only. It hardcodes a lose situation.
     grid[0][0] = 2;
     grid[0][1] = 4;
     grid[0][2] = 256;
@@ -345,37 +358,22 @@ function drawGameOverCanvas() {
     ctxGameOver.roundRect(20, 20, 440, 265,
         {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
 }
-// function drawGameOver() {
-//     filter(GRAY);
-//     filter(BLUR, 2);
-//     noStroke();
-//     fill('gray');
-//     rect(200, 270, 300, 250, 5);
-//     fill('#b3cccc');
-//     stroke('#000000');
-//     textSize(60);
-//     textFont('forte');
-//     strokeWeight(5);
-//     if (winner === true)
-//         text('You Win!', 350, 340);
-//     else
-//         text('You Lose...', 350, 340);
-//
-// }
-function createNewGameButton() {
+function createGameOverBtn() {
     button = document.createElement('button');
-    button.innerHTML = ('Try again...');
+    button.innerHTML = ('Game Over<br>try again &#8634;');
+    button.style.textShadow = '0px 5px 20px #ffffff, 5px 0px 20px #ffffff, -5px 0px 20px #ffffff';
     button.style.position = 'absolute';
-    button.style.top = '337px';
-    button.style.left = '267px'
-    button.style.height = '50px';
-    button.style.width = '350';
-    button.style.fontFamily = 'algerian';
-    button.style.fontSize = '30px';
+    button.style.top = '280px';
+    button.style.left = '190px'
+    button.style.height = '180px';
+    button.style.width = '350px';
+    button.style.fontFamily = 'cambria';
+    button.style.fontSize = '60px';
     button.style.visibility = 'hidden';
     button.style.backgroundColor = 'transparent';
     button.style.borderStyle = 'solid';
     button.style.borderColor = '#000000';
+    button.style.fontWeight = '#ffffff';
     button.style.borderWidth = '1px';
     button.style.borderRadius = '7px';
     button.addEventListener('click',function () {
@@ -395,8 +393,79 @@ function createNewGameButton() {
         arrowEvent();
         drawNumbers();
     });
+    button.addEventListener('mouseover', function() {
+        // button.style.backgroundColor = 'rgb(200, 200, 200, 0.5)';
+        button.style.backgroundColor = 'rgb(150, 150, 150, 0.7)';
+        button.addEventListener('mouseout', function() {
+            button.style.backgroundColor = 'transparent';
+        });
+    });
     document.body.appendChild(button);
+    let icon2 = document.createElement('img');
+    icon2.src = 'assets/icon_2.png';
+    icon2.style.position = 'absolute';
+    icon2.style.top = '90px';
+    icon2.style.left = '316px';
+    icon2.style.width = '100px';
+    document.body.appendChild(icon2);
     return button;
+}
+function createNewGameButton() {
+    let newGameBtn = document.createElement('button');
+    newGameBtn.innerHTML = ('New Game');
+    newGameBtn.style.position = 'absolute';
+    newGameBtn.style.top = '80px';
+    newGameBtn.style.left = '420px'
+    newGameBtn.style.height = '50px';
+    newGameBtn.style.width = '350';
+    newGameBtn.style.fontFamily = 'cambria';
+    newGameBtn.style.fontSize = '30px';
+    newGameBtn.style.color = '#e6e6e6';
+    newGameBtn.style.backgroundColor = '#555555';
+    newGameBtn.style.borderStyle = 'solid';
+    newGameBtn.style.borderColor = '#000000';
+    newGameBtn.style.borderWidth = '1px';
+    newGameBtn.style.borderRadius = '5px';
+    document.body.appendChild(newGameBtn);
+    newGameBtn.addEventListener('click', function() {
+        // todo: fix the below.
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);  // Clear the game canvas of the previous game
+        drawGrid();  // Draw the canvas for the new game.
+        winner = false;  // Reset value for new game.
+        gameOver = false;  // Reset value for new game.
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++)
+                grid[i][j] = 0;
+        }
+        randomGen();
+        randomGen();
+        arrowEvent();
+        drawNumbers();
+    })
+    newGameBtn.addEventListener('mouseover', function(event) {
+        newGameBtn.style.backgroundColor = '#a6a6a6';
+        newGameBtn.addEventListener('mouseout', function() {
+            newGameBtn.style.backgroundColor = '#555555';
+        });
+    });
+
+}
+function createHowTo() {
+    let howToPar1 = document.createElement('p');
+    let howToPar2 = document.createElement('p');
+    howToPar1.style.marginLeft = '150px';
+    howToPar1.innerHTML =
+        'Use the arrow keys to play&emsp;&larr; &uarr; &rarr; &darr;'
+    howToPar1.style.fontSize = '25px';
+    howToPar1.style.fontFamily = 'cambria';
+    howToPar2.style.marginLeft = '150px';
+    howToPar2.style.verticalAlign = 'center';
+    howToPar2.innerHTML =
+        'or swipe <img src="assets/icon_1.png" style="width: 70px; height: 70px; vertical-align: middle;">';
+    howToPar2.style.fontSize = '25px';
+    howToPar2.style.fontFamily = 'cambria';
+    gameContainer.appendChild(howToPar1);
+    gameContainer.appendChild(howToPar2);
 }
 
 function mapGrid(e) {
@@ -531,7 +600,6 @@ function checkGameOver() {
                 let canvasImage = new CanvasImage(gameCanvas, this);
                 canvasImage.blur(2);
             };
-            // createGameOverCanvas();
         }, 1000);
     }
 }
