@@ -549,13 +549,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
         howToPar1.style.marginLeft = '150px';
         howToPar1.innerHTML =
             'Use the arrow keys to play&emsp;&larr; &uarr; &rarr; &darr;'
-        howToPar1.style.fontSize = '25px';
+        howToPar1.style.fontSize = '22px';
         howToPar1.style.fontFamily = 'cambria';
         howToPar2.style.marginLeft = '150px';
         howToPar2.style.verticalAlign = 'center';
         howToPar2.innerHTML =
-            'or swipe <img src="assets/icon_1.png" alt="" style="width: 70px; height: 70px; vertical-align: middle;">';
-        howToPar2.style.fontSize = '25px';
+            'or swipe <img src="assets/icon_1.png" alt="" style="width: 70px; height: 50px; vertical-align: middle;">';
+        howToPar2.style.fontSize = '22px';
         howToPar2.style.fontFamily = 'cambria';
         gameContainer.appendChild(howToPar1);
         gameContainer.appendChild(howToPar2);
