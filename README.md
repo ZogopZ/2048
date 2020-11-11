@@ -1,6 +1,6 @@
 # 2048
 
-A JavaScript implementation of the single-player sliding block puzzle game.
+This is a JavaScript implementation of the single-player sliding block puzzle game.
 
 # How to run
 
@@ -8,7 +8,7 @@ Download, unzip the files and run '2048.html' file inside the parent directory u
 
 # Setup
 
-The application initializes and preloads various game requirements before drawing the canvas . Next an empty 4 x 4 canvas is created and populated with 2 random numbers. Since the canvas is empty in the beginning these 2 numbers can appear anywhere on the game board and their values are limited throughout the whole game to 2 or 4. 
+The application initializes and preloads various game requirements before drawing the canvas . Then an empty 4 x 4 canvas is created and populated with 2 random numbers. Since the canvas is empty in the beginning these 2 numbers can appear anywhere on the game board and the values of the newly appeared numbers are limited throughout the whole game to 2 or 4. 
 - number 2 is generated with a 90% probability.
 - number 4 is generated with a 10% probability.
 
@@ -18,19 +18,24 @@ The application then starts listening to ```keydown``` and ```swipe``` events an
 
 # Gameplay
 
-The user can use the arrows on the keyboard or swipes on a mobile device to move the game tiles towards any direction. The goal is to add up game tiles of the same value and eventually reach the number 2048. Each time two game tiles 'collide' with each other their values are checked. If the two values are identical, the tiles are merged to one and the value is multiplied by 2. Whenever the player manages to complete a move and move at least one tile of the board, a random 2 or 4 is generated and placed on a random empty spot. The random number generator is disable in case no movement is registered. The game can be restart at any time using the `New Game` button on the top right corner. 
+The user can utilize the arrows on the keyboard or swipe on a mobile device to move the game tiles towards any direction. The goal is to add up the game tiles of the same value and eventually reach the number 2048. Each time the user moves the game board towards a direction the values of neighboring tiles are checked. If the two values are identical, the tiles are merged to one and the value is multiplied by 2. Whenever the player manages to move at least one tile in the canvas (or merge two values into one), a random 2 or 4 is generated and placed on a random empty spot. The random number generator is disable in case no movement is registered. The game can be restarted at any time using the `New Game` button on the top right corner. 
 
 
 
 # Game over 
 
-When the games reaches a point where the user succeeds to generate the number 2048, the game is over and a message is displayed. The game is also over when the user reaches a point where there aren't any moves left, namely the game board is full and there aren't any neighboring tiles to merge. On a game over occurrence the game board freezes and becomes unresponsive. At this time no ```keydown``` events are captured. Then the aforementioned message is displayed and the user can choose to start a new game by clicking either the `New Game` button or the center of the game board where another button is presented. Finally the application reinitializes the game board with two random numbers.
+At the time the game reaches a point when the user succeeds to generate the number 2048, the game is over and a message is displayed. The game is also over when the user reaches a point when there aren't any moves left, namely the game board is full and there aren't any neighboring tiles to merge. On a game over occurrence the game board freezes and becomes unresponsive. At this time no ```keydown``` events are captured. Then the aforementioned message is displayed and the user can choose to start a new game by clicking either the `New Game` button or the center of the game board where another button is presented. Finally the application reinitializes the game board with two random numbers.
 
 
 
 # Algorithm and animations
 
-On a key press or swipe, the game board is automatically mapped to an ```array```. All direction key event captures are eventually treated as a left game board slide. Then according to the pressed direction the ```array``` is remapped to follow the sliding rules. This was an implementation choice in order easily check for errors during the process and write understandable and effective code. The animations are treated the same way. An ```array``` is being used to map the game state before the `keydown` event . Each element of the array contains an object with the number that moved and its weight. The weight defines the positions that the number moved along the direction key axis. The user can turn off the animations by pressing ```d``` on the keyboard and re-enable them using the same key.
+On a key press or swipe, the game board is automatically mapped to an ```array```. All direction key event captures are eventually treated as a left game board slide. Then according to the pressed direction the ```array``` is remapped to follow the sliding rules. This was an implementation choice in order to easily check for errors during the process and write understandable and effective code. The animations are treated the same way. An ```array``` is being used to map the game state before the `keydown` event . Each element of the array contains an object with the number that moved and its weight. The number of positions that a game tile moves along the direction key axis is stored as the ```weight``` variable. This ```variable``` can be assigned values -1, 0, 1, 2, 3. 
+
+- A tile that moved -1 or 0 positions means that it could not move either because it was a zero number or because another tile blocked its path.
+- A tile that moved 1, 2 or 3 position means that it managed to move or merge.
+
+The user can turn off the animations by pressing ```d``` on the keyboard and re-enable them using the same key.
 
 
 
