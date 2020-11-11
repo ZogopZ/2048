@@ -30,10 +30,11 @@ function setup() {
     // noRandomGen();
     // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
     // randomGen();  // todo: For correct gaming uncomment these two lines along with randomGen() in arrowKeyCapture().
-    // simulateGameOverLose();
+    simulateGameOverLose();
     // simulateGameOverWin();
     drawNumbers();
-    arrowKeyCapture();
+    arrowEvent();
+    swipeEvent();
 }
 async function loadImages() {
     const promiseArray = [];  // create an array for promises
@@ -52,7 +53,7 @@ async function loadImages() {
  * Maps the numbers of the game grid accordingly, by capturing which arrow key
  * was pressed. The result is stored in 'map' array.
  * */
-function arrowKeyCapture() {
+function arrowEvent() {
     document.onkeydown = checkKey;
     function checkKey(e) {
         checker = JSON.parse(JSON.stringify(grid));  // This is used to compare current and previous state of game board.
@@ -63,7 +64,7 @@ function arrowKeyCapture() {
             if ((e.key === arrows[0]) || (e.key === arrows[1]) || (e.key === arrows[2]) || (e.key === arrows[3])) {
                 map = mapGrid(e);
                 grid = map;
-                if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved at least one tile so we need to redraw the canvas.
+                if (JSON.stringify(checker) !== JSON.stringify(grid)) {  // Player moved so we need to animate the canvas.
                     (gameSim === false ? randomGen() : null);
                     animate(e);
                     console.log('**************PREVIOUS STATE below**************' + '\nkey pressed: ' + e.key);
@@ -75,6 +76,60 @@ function arrowKeyCapture() {
         }
     }
 }
+function swipeEvent() {
+    let touchStartY = 0;
+    let touchStartX = 0;
+    let touchEndY = 0;
+    let touchEndX = 0;
+    gameContainer.addEventListener('touchstart', function(event) {
+        touchStartY = event.changedTouches[0].screenY;
+        touchStartX = event.changedTouches[0].screenX;
+
+    }, false);
+
+    gameContainer.addEventListener('touchend', function(event) {
+        touchEndY = event.changedTouches[0].screenY;
+        touchEndX = event.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        if (touchEndY < touchStartY) {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                target: 'body',
+                key: 'ArrowUp',
+                charCode: 0,
+                keyCode: 38
+            }));
+        }
+        else if (touchEndY > touchStartY) {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                target: 'body',
+                key: 'ArrowDown',
+                charCode: 0,
+                keyCode: 40
+            }));
+        }
+
+        else if (touchEndX > touchStartX) {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                target: 'body',
+                key: 'ArrowRight',
+                charCode: 0,
+                keyCode: 39
+            }));
+        }
+        else if (touchEndX < touchStartX) {
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                target: 'body',
+                key: 'ArrowLeft',
+                charCode: 0,
+                keyCode: 37
+            }));
+        }
+    }
+}
+
 function mapKey(e) {
     if (e.key === 'ArrowUp')
         pressed = 'up';
@@ -94,7 +149,7 @@ function createGameCanvasElem() {
     gameCanvas.height = 416;
     gameCanvas.style.marginTop = '150px';
     gameCanvas.style.marginLeft = '150px';
-    drawCanvas();
+    drawGrid();
 }
 function createGameOverCanvas() {
     gameOverCanvas = document.createElement('canvas');
@@ -187,7 +242,7 @@ function simulateGameOverLose() {
 }
 
 
-function drawCanvas() {
+function drawGrid() {
     ctx.beginPath();
     ctx.fillStyle = 'transparent';
     ctx.fillRect(0, 0, 450, 450);
@@ -247,7 +302,7 @@ function animate(e) {
             function animate(time) {
                 movePoint += speed * direction;
                 if (e.key === 'ArrowUp') {
-                    drawCanvas();
+                    drawGrid();
                     ctx.drawImage(images[0], constantAxis, startPoint, 84, 84);
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
                     if (movePoint >= endPoint + speed)
@@ -255,7 +310,7 @@ function animate(e) {
                     else
                         drawNumbers();
                 } else if (e.key === 'ArrowDown') {
-                    drawCanvas();
+                    drawGrid();;
                     ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
                     ctx.drawImage(images[slice[i].number], constantAxis, movePoint, 84, 84);
                     if (movePoint <= endPoint - 1)
@@ -263,7 +318,7 @@ function animate(e) {
                     else
                         drawNumbers();
                 } else if (e.key === 'ArrowRight') {
-                    drawCanvas();
+                    drawGrid();;
                     ctx.drawImage(images[0], startPoint, constantAxis, 84, 84);
                     ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
                     if (movePoint <= endPoint - speed)
@@ -271,11 +326,10 @@ function animate(e) {
                     else
                         drawNumbers();
                 } else if (e.key === 'ArrowLeft') {
-                    drawCanvas();
+                    drawGrid();;
                     ctx.drawImage(images[0], movePoint, constantAxis, 84, 84);
                     ctx.drawImage(images[slice[i].number], movePoint, constantAxis, 84, 84);
                     if (movePoint >= endPoint + speed) {
-                        console.log(movePoint);
                         requestAnimationFrame(animate);
                     }
                     else
@@ -291,23 +345,23 @@ function drawGameOverCanvas() {
     ctxGameOver.roundRect(20, 20, 440, 265,
         {upperLeft: 20, upperRight: 20, lowerLeft: 20, lowerRight: 20}, true, true);
 }
-function drawGameOver() {
-    filter(GRAY);
-    filter(BLUR, 2);
-    noStroke();
-    fill('gray');
-    rect(200, 270, 300, 250, 5);
-    fill('#b3cccc');
-    stroke('#000000');
-    textSize(60);
-    textFont('forte');
-    strokeWeight(5);
-    if (winner === true)
-        text('You Win!', 350, 340);
-    else
-        text('You Lose...', 350, 340);
-
-}
+// function drawGameOver() {
+//     filter(GRAY);
+//     filter(BLUR, 2);
+//     noStroke();
+//     fill('gray');
+//     rect(200, 270, 300, 250, 5);
+//     fill('#b3cccc');
+//     stroke('#000000');
+//     textSize(60);
+//     textFont('forte');
+//     strokeWeight(5);
+//     if (winner === true)
+//         text('You Win!', 350, 340);
+//     else
+//         text('You Lose...', 350, 340);
+//
+// }
 function createNewGameButton() {
     button = document.createElement('button');
     button.innerHTML = ('Try again...');
@@ -327,9 +381,9 @@ function createNewGameButton() {
     button.addEventListener('click',function () {
         button.style.visibility = 'hidden';
         ctx.filter = 'blur()';  // Remove blurring effect to redraw correctly the canvas for a new game.
-        ctxGameOver.clearRect(0, 0, gameOverCanvas.width, gameOverCanvas.height);  // Clear the game over canvas of the previous game.
+        // ctxGameOver.clearRect(0, 0, gameOverCanvas.width, gameOverCanvas.height);  // Clear the game over canvas of the previous game.
         ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);  // Clear the game canvas of the previous game
-        drawCanvas();  // Draw the canvas for the new game.
+        drawGrid();  // Draw the canvas for the new game.
         winner = false;  // Reset value for new game.
         gameOver = false;  // Reset value for new game.
         for (let i = 0; i < 4; i++) {
@@ -338,8 +392,8 @@ function createNewGameButton() {
         }
         randomGen();
         randomGen();
-        arrowKeyCapture();
-        drawGrid();
+        arrowEvent();
+        drawNumbers();
     });
     document.body.appendChild(button);
     return button;
@@ -517,7 +571,11 @@ function checkEqualNeighbours() {
             home = grid[i][j];
             neighbourSide = (j === 3) ? undefined : grid[i][j + 1];
             neighbourBelow = (i === 3) ? undefined : grid[i + 1][j];
-            console.log('CURRENT-STATE --> Home: ' + home + ', Neighbour Side: ' + neighbourSide + ', Neighbour Below: ' + neighbourBelow);
+            (gameSim === true ? console.log(
+                'CURRENT-STATE --> Home: ' + home +
+                ', Neighbour Side: ' + neighbourSide +
+                ', Neighbour Below: ' + neighbourBelow
+            ) : null);
             if (neighbourSide !== undefined) {
                 if (home === neighbourSide) {
                     canMerge = true;
@@ -567,3 +625,9 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, ra
         this.fill();
     }
 }
+
+
+
+
+
+
