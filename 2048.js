@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             setTimeout(function() {
                 animationMessage.style.visibility = 'hidden';
                 animationMessage.remove();
-            }, 2000);
+            }, 1000);
         }
     }
 
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         ctx = gameCanvas.getContext('2d');
         gameCanvas.width = 416;
         gameCanvas.height = 416;
-        gameCanvas.style.marginTop = '150px';
+        gameCanvas.style.marginTop = '130px';
         gameCanvas.style.marginLeft = '150px';
         drawGrid();
     }
@@ -507,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         icon2.setAttribute('id', 'icon-2');
         icon2.src = 'assets/icon_2.png';
         icon2.style.position = 'absolute';
-        icon2.style.top = '90px';
+        icon2.style.top = '70px';
         icon2.style.left = '316px';
         icon2.style.width = '100px';
         document.body.appendChild(icon2);
@@ -516,7 +516,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         newGameButton = document.createElement('button');
         newGameButton.innerHTML = ('New Game');
         newGameButton.style.position = 'absolute';
-        newGameButton.style.top = '80px';
+        newGameButton.style.top = '60px';
         newGameButton.style.left = '420px'
         newGameButton.style.height = '50px';
         newGameButton.style.width = '350';
@@ -549,13 +549,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
         howToPar1.style.marginLeft = '150px';
         howToPar1.innerHTML =
             'Use the arrow keys to play&emsp;&larr; &uarr; &rarr; &darr;'
-        howToPar1.style.fontSize = '22px';
+        howToPar1.style.fontSize = '30';
         howToPar1.style.fontFamily = 'cambria';
         howToPar2.style.marginLeft = '150px';
         howToPar2.style.verticalAlign = 'center';
         howToPar2.innerHTML =
-            'or swipe <img src="assets/icon_1.png" alt="" style="width: 70px; height: 50px; vertical-align: middle;">';
-        howToPar2.style.fontSize = '22px';
+            'or swipe <img src="assets/icon_1.png" alt="" style="width: 70px; height: 70px; vertical-align: middle;">';
+        howToPar2.style.fontSize = '30';
         howToPar2.style.fontFamily = 'cambria';
         gameContainer.appendChild(howToPar1);
         gameContainer.appendChild(howToPar2);
